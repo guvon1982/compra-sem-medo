@@ -1,0 +1,21 @@
+# Ambiente de desenvolvimento do projeto Compra Sem Medo.
+#
+# Espelha o padrao usado pelo professor em aula (mesma imagem node:24, mesma
+# estrategia de portas e volume) para garantir paridade entre o que o aluno
+# desenvolve e o que sera corrigido.
+
+services:
+  app:
+    image: node:24
+    container_name: compra-sem-medo-app
+    working_dir: /app
+    volumes:
+      # Monta a pasta do projeto dentro do container.
+      # Alteracoes feitas no Windows aparecem na hora dentro do container.
+      - ./:/app
+    ports:
+      - "5173:5173" # Vite dev server (npm run dev)
+      - "4173:4173" # Vite preview do build (npm run preview)
+      - "3000:3000" # json-server (entra na proxima feature)
+    tty: true
+    stdin_open: true
