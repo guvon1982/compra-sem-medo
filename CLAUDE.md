@@ -4,9 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado atual do projeto
 
-Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`. No momento, o repositorio contem apenas planejamento (`docs/PRD.md`, `RESUMO_PARA_CLAUDE_CODE.md`). **Nenhum codigo de aplicacao foi escrito ainda.** O repositorio no GitHub ainda nao foi criado.
+Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
-Antes de propor codigo, leia `docs/PRD.md` para entender escopo, regras de negocio (RN1-RN10) e funcionalidades obrigatorias (F1-F11).
+**Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
+**Branch padrao:** `develop`. **Branch atual de trabalho:** `feature/docker-setup` (pronta para commit, push e PR).
+
+### O que ja foi feito
+
+- **PR #1 mergeado em `develop` (2026-06-03):** scaffold Vite + React 19, stack instalada (`react-router` v7, `react-hook-form`, `lucide-react`, `vitest`, `@testing-library/*`, `jsdom`, `@vitest/ui`), Vitest configurado em `vite.config.js`, `src/test/setup.js`, scripts npm (`dev`, `build`, `preview`, `lint`, `test`, `test:run`, `test:ui`, `test:coverage`), fonte Inter, `lang="pt-BR"`, `theme-color #22C55E`, `.gitignore` consolidado, Vite com `server.host: true` e `usePolling: true`, smoke test do App (2 testes passando).
+
+### Trabalho em andamento — `feature/docker-setup`
+
+Arquivos prontos localmente, **validados** dentro do container (Docker subiu apos habilitar SVM na BIOS):
+
+- `docker-compose.yml` — `node:24`, volumes, portas 5173/4173/3000, `tty+stdin_open`, `container_name: compra-sem-medo-app`.
+- `.dockerignore` — preparado para futuro Dockerfile proprio.
+- `README.md` — reescrito do boilerplate Vite para versao do produto: stack, instrucoes Docker e nao-Docker, scripts, estrutura de pastas, workflow de Git, links para docs.
+
+**Validacao feita (2026-06-04):** `docker compose up -d` -> `docker compose exec app npm install` -> `npm run dev` (carregou em http://localhost:5173) -> `npm run test:run` (2/2 passando) -> `docker compose down`. Tudo OK. Testes dentro do container demoram ~50s vs ~3s no Windows (overhead jsdom + polling) — aceitavel para o escopo.
+
+**Pendente:** commit, push, PR para `develop`, merge.
+
+### Roteiro restante
+
+- **Fase 2:** `feature/ci-pull-request` — `.github/workflows/pr-checks.yml` (install + lint + test + build em PRs para `develop` e `main`), template de PR, regras de protecao de branch na UI do GitHub.
+- **Fase 3:** `feature/design-system` — tokens CSS, 10 componentes (Button, Input, Card, ProductItem, ShoppingListItem, BudgetProgress, Header, BottomNavigation, AlertMessage, EmptyState), mockup das 3 telas (Home, Cadastro, Listagem).
+- **Depois:** features de F1-F11 conforme PRD, uma branch por user story ou agrupamento logico.
+
+Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
 ## Stack travada
 
@@ -62,25 +87,36 @@ Regras inegociaveis para qualquer codigo escrito neste repositorio:
 - Atualizar pagina ou fechar navegador **nao pode** apagar dados (garantido por localStorage).
 - Compras no historico sao **imutaveis** no MVP.
 
-## Comandos (a serem confirmados quando o projeto Vite for criado)
+## Comandos do projeto
 
-O scaffold Vite ainda nao foi gerado. Quando for, os comandos esperados serao:
-
-```bash
-npm install         # instala dependencias
-npm run dev         # roda Vite em modo desenvolvimento
-npm run build       # build de producao
-npm run preview     # serve o build localmente
-npm run lint        # ESLint
-```
-
-O json-server roda em paralelo, em outro terminal, na porta 3000 (padrao do exercicio do professor):
+Todos os comandos `npm` devem rodar **dentro do container Docker** apos a Fase 1.5 estar concluida:
 
 ```bash
-npx json-server --watch db.json --port 3000
+# Subir/derrubar ambiente
+docker compose up -d
+docker compose down
+
+# Status
+docker compose ps
+
+# Rodar comandos npm dentro do container
+docker compose exec app npm install
+docker compose exec app npm run dev          # http://localhost:5173
+docker compose exec app npm run build
+docker compose exec app npm run preview      # http://localhost:4173
+docker compose exec app npm run lint
+docker compose exec app npm test             # watch
+docker compose exec app npm run test:run     # single run (CI)
+docker compose exec app npm run test:ui      # UI no navegador
+docker compose exec app npm run test:coverage
+
+# Shell dentro do container
+docker compose exec app bash
 ```
 
-A URL base usada nos services e `http://localhost:3000/<entidade>`.
+O json-server (a entrar em proxima feature) rodara na porta 3000, tambem dentro do container. URL base esperada nos services: `http://localhost:3000/<entidade>`.
+
+**Sem Docker (fallback):** se o container nao estiver disponivel, os mesmos scripts npm rodam direto no Windows (`npm run dev`, etc.), exigindo Node 22+ local.
 
 ## Divisao de responsabilidades entre assistentes (combinada com o usuario)
 

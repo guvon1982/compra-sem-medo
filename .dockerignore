@@ -1,0 +1,32 @@
+# Arquivos que NAO devem ser copiados/montados para o container.
+# Como hoje usamos somente bind mount (volumes: ./:/app), este arquivo
+# tem efeito limitado, mas fica preparado para quando criarmos um
+# Dockerfile proprio no futuro.
+
+node_modules
+dist
+build
+coverage
+
+# Pasta de sessao do Claude Code — informacao local do desenvolvedor
+.claude
+
+# Pasta do Git — desnecessaria dentro do container
+.git
+.gitignore
+
+# Variaveis de ambiente locais
+.env
+.env.local
+.env.*.local
+
+# Logs e cache
+*.log
+.vite
+.eslintcache
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode
+.idea
