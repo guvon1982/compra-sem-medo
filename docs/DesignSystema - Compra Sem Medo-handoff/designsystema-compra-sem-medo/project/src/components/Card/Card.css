@@ -1,0 +1,32 @@
+/* ============================================================
+   Card.css
+   ============================================================ */
+
+.csm-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* variante muted: fundo do app, para blocos secundários */
+.csm-card--muted {
+  background: var(--color-background);
+}
+
+/* paddings na escala 4px */
+.csm-card--pad-none { padding: 0; }
+.csm-card--pad-sm   { padding: var(--space-3); }
+.csm-card--pad-md   { padding: var(--space-4); }
+.csm-card--pad-lg   { padding: var(--space-6); }
+
+/* card clicável: vira alvo de toque com feedback discreto */
+.csm-card--interactive {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+.csm-card--interactive:hover {
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-sm);
+}
+.csm-card--interactive:active { transform: translateY(1px); }

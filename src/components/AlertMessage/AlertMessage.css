@@ -1,0 +1,61 @@
+/* ============================================================
+   AlertMessage.css — fundo suave por variante + ícone colorido.
+   Sem borda-accent lateral. "error" usa o mesmo laranja do
+   "alert" porém com peso de título maior (a paleta não tem
+   vermelho).
+   ============================================================ */
+
+.csm-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.csm-alert__icon { display: inline-flex; flex-shrink: 0; margin-top: 1px; }
+
+.csm-alert__body { flex: 1; min-width: 0; }
+.csm-alert__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.csm-alert__text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  line-height: var(--leading-snug);
+}
+
+.csm-alert__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -6px -4px 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.csm-alert__close:hover { background: rgba(15, 23, 42, 0.06); }
+
+/* ---- Variantes (fundo suave + ícone na cor de estado) ---- */
+.csm-alert--success { background: var(--color-green-soft); }
+.csm-alert--success .csm-alert__icon { color: var(--color-green-dark); }
+
+.csm-alert--info { background: var(--color-blue-soft); }
+.csm-alert--info .csm-alert__icon { color: var(--color-blue-primary); }
+
+.csm-alert--alert { background: var(--color-orange-soft); }
+.csm-alert--alert .csm-alert__icon { color: var(--color-orange-alert); }
+
+/* error: mesmo laranja, com mais ênfase no título */
+.csm-alert--error { background: var(--color-orange-soft); }
+.csm-alert--error .csm-alert__icon { color: var(--color-orange-alert); }
+.csm-alert--error .csm-alert__title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-orange-alert);
+}

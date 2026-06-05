@@ -7,28 +7,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** `feature/docker-setup` (pronta para commit, push e PR).
+**Branch padrao:** `develop`. **Branch atual de trabalho:** a ser criada (`feature/design-system`).
 
 ### O que ja foi feito
 
 - **PR #1 mergeado em `develop` (2026-06-03):** scaffold Vite + React 19, stack instalada (`react-router` v7, `react-hook-form`, `lucide-react`, `vitest`, `@testing-library/*`, `jsdom`, `@vitest/ui`), Vitest configurado em `vite.config.js`, `src/test/setup.js`, scripts npm (`dev`, `build`, `preview`, `lint`, `test`, `test:run`, `test:ui`, `test:coverage`), fonte Inter, `lang="pt-BR"`, `theme-color #22C55E`, `.gitignore` consolidado, Vite com `server.host: true` e `usePolling: true`, smoke test do App (2 testes passando).
 
-### Trabalho em andamento — `feature/docker-setup`
-
-Arquivos prontos localmente, **validados** dentro do container (Docker subiu apos habilitar SVM na BIOS):
-
-- `docker-compose.yml` — `node:24`, volumes, portas 5173/4173/3000, `tty+stdin_open`, `container_name: compra-sem-medo-app`.
-- `.dockerignore` — preparado para futuro Dockerfile proprio.
-- `README.md` — reescrito do boilerplate Vite para versao do produto: stack, instrucoes Docker e nao-Docker, scripts, estrutura de pastas, workflow de Git, links para docs.
-
-**Validacao feita (2026-06-04):** `docker compose up -d` -> `docker compose exec app npm install` -> `npm run dev` (carregou em http://localhost:5173) -> `npm run test:run` (2/2 passando) -> `docker compose down`. Tudo OK. Testes dentro do container demoram ~50s vs ~3s no Windows (overhead jsdom + polling) — aceitavel para o escopo.
-
-**Pendente:** commit, push, PR para `develop`, merge.
+- **PR #2 mergeado (2026-06-04):** ambiente Docker (`docker-compose.yml` com `node:24`, ports 5173/4173/3000, `container_name: compra-sem-medo-app`), `.dockerignore`, `README.md` reescrito do zero. Validado funcionando dentro do container.
+- **PR #3 mergeado (2026-06-04):** CI ativo. `.github/workflows/pr-checks.yml` roda install + lint + `npm run test:run` + `npm run build` em Node 24 em todo PR para `develop` ou `main`. `.github/pull_request_template.md` padroniza descricao de PRs.
+- **Protecao de branch via Rulesets (2026-06-04):**
+  - `Protect develop`: requer PR, requer check `Lint, testes e build` verde, bloqueia force push.
+  - `Protect main`: idem + `Restrict deletions` + `Require linear history`.
+  - Validado: push direto em `main` rejeitado com `GH013`.
 
 ### Roteiro restante
 
-- **Fase 2:** `feature/ci-pull-request` — `.github/workflows/pr-checks.yml` (install + lint + test + build em PRs para `develop` e `main`), template de PR, regras de protecao de branch na UI do GitHub.
-- **Fase 3:** `feature/design-system` — tokens CSS, 10 componentes (Button, Input, Card, ProductItem, ShoppingListItem, BudgetProgress, Header, BottomNavigation, AlertMessage, EmptyState), mockup das 3 telas (Home, Cadastro, Listagem).
+- **Fase 3 (em andamento):** `feature/design-system` — Design System adotado do handoff do Claude Design (ver `docs/DESIGN_SYSTEM_ORIGIN.md`). Inclui tokens, base, layout, 12 componentes (Button, Input, Card, ProductItem, ShoppingListItem, BudgetProgress, Header, BottomNavigation, AlertMessage, EmptyState, Icon, Logo), mock data brasileiro e 3 paginas (Home, Cadastro, Listagem com 3 abas + modal de finalizar). Roteamento com react-router v7 + NavLink. Layout responsivo (mobile-first ate 767px; centralizado em 480px ≥ 768px).
+- **Limitacao conhecida da Fase 3:** cada pagina mantem seu proprio estado local com dados mock — Cadastro nao persiste produto no catalogo da Listagem; Home e Listagem nao compartilham a compra atual. Resolvido na Fase 4.
+- **Fase 4 (proxima):** Context API + useReducer em `src/contexts/` para estado compartilhado (catalogo, compra atual, meta, historico). Cadastro passa a injetar no catalogo; Listagem reflete; Home mostra resumo real.
+- **Fase 5:** json-server para o catalogo de produtos (services em `src/services/produtoService.js`); `localStorage` em `src/storage/` para compra atual, meta e historico.
 - **Depois:** features de F1-F11 conforme PRD, uma branch por user story ou agrupamento logico.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.

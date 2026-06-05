@@ -1,0 +1,95 @@
+/* ============================================================
+   Input.css
+   ============================================================ */
+
+.csm-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);            /* rótulo ↔ campo ↔ mensagem: ritmo de 8px */
+}
+
+.csm-input__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.csm-input__req { color: var(--color-orange-alert); }
+
+.csm-input__field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+/* prefixo (ex.: "R$") encostado no campo */
+.csm-input__prefix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-right: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.csm-input__control {
+  width: 100%;
+  min-height: var(--tap-target);       /* alvo de toque ≥ 44px */
+  padding: 0 var(--space-3);
+  font-size: var(--text-body);         /* 16px: evita zoom automático no iOS */
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  appearance: none;
+}
+.csm-input__field.has-prefix .csm-input__control {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+textarea.csm-input__control {
+  padding: var(--space-3);
+  min-height: 88px;
+  line-height: var(--leading-normal);
+  resize: vertical;
+}
+
+.csm-input__control::placeholder { color: var(--color-text-secondary); }
+
+.csm-input__control:focus {
+  outline: none;
+  border-color: var(--color-blue-primary);
+  /* anel de foco discreto, sem sombra colorida “neon” */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* seta customizada do select (sem depender de ícone externo) */
+select.csm-input__control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  padding-right: var(--space-8);
+  cursor: pointer;
+}
+
+/* estado inválido: borda laranja-alerta (sem vermelho) */
+.csm-input.is-invalid .csm-input__control {
+  border-color: var(--color-orange-alert);
+}
+.csm-input.is-invalid .csm-input__control:focus {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+}
+
+.csm-input__msg {
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+.csm-input__msg--hint { color: var(--color-text-secondary); }
+.csm-input__msg--error {
+  color: var(--color-orange-alert);
+  font-weight: var(--font-weight-medium);
+}

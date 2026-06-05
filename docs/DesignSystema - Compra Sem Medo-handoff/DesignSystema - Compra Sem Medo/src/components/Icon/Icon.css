@@ -1,0 +1,6 @@
+/* Icon — herda cor do contexto (currentColor) e não encolhe em flex. */
+.csm-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}

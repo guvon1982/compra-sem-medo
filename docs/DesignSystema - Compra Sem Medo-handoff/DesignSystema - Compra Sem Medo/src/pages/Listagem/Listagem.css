@@ -1,0 +1,151 @@
+/* ============================================================
+   Listagem.css
+   ============================================================ */
+
+.csm-listagem { position: relative; }
+
+/* ---- Abas (sticky logo abaixo do header) ---- */
+.csm-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.csm-tabs__tab {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.csm-tabs__tab:hover { background: var(--color-background); }
+.csm-tabs__tab.is-active {
+  background: var(--color-text-primary);
+  color: var(--color-text-on-color);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* herói fixo abaixo das abas */
+.csm-listagem__hero {
+  position: sticky;
+  top: 56px; /* altura aproximada das abas */
+  z-index: 14;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* lista com divisórias finas entre itens */
+.csm-divided > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.csm-listagem__cat { margin-bottom: var(--space-2); }
+
+/* ---- Histórico ---- */
+.csm-listagem__hist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.csm-hist { display: flex; flex-direction: column; gap: var(--space-3); }
+.csm-hist__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.csm-hist__date {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+.csm-hist__chip {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+}
+.csm-hist__chip.is-ok { background: var(--color-green-soft); color: var(--color-green-dark); }
+.csm-hist__chip.is-over { background: var(--color-orange-soft); color: var(--color-orange-alert); }
+.csm-hist__bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.csm-hist__total {
+  font-size: var(--text-h1);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.csm-hist__items { font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+/* ---- Modal de confirmação ---- */
+.csm-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;     /* sobe do rodapé: alcançável com o polegar */
+  justify-content: center;
+  padding: var(--space-4);
+}
+.csm-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+.csm-modal__card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: center;
+  align-items: center;
+}
+.csm-modal__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-pill);
+  background: var(--color-green-soft);
+  color: var(--color-green-dark);
+}
+.csm-modal__title {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.csm-modal__text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-normal);
+}
+.csm-modal__text strong { color: var(--color-text-primary); }
+.csm-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+/* Entrada por TRANSFORM apenas (opacidade fica sempre 1). Assim, mesmo
+   que o navegador pause a animação no primeiro quadro, o modal continua
+   visível — nunca preso em opacity:0. */
+@keyframes csm-rise { from { transform: translateY(14px); } to { transform: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .csm-modal__card { animation: csm-rise var(--transition-base); }
+}

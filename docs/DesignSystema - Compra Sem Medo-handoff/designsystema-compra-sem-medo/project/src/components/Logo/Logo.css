@@ -1,0 +1,24 @@
+/* Logo — a marca carrega o verde; o wordmark fica no texto primário
+   (hierarquia por peso: "Compra" 500, "Sem Medo" 700). */
+.csm-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.csm-logo__mark {
+  color: var(--color-green-primary);
+}
+
+.csm-logo__word {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.csm-logo__word strong {
+  font-weight: var(--font-weight-bold);
+}
