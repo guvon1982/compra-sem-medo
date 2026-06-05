@@ -1,0 +1,56 @@
+/* ============================================================
+   Compra Sem Medo — base.css
+   Reset moderno + estilos base. Importar DEPOIS de tokens.css.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-normal);
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mídia não estoura o container */
+img, picture, svg, video, canvas { display: block; max-width: 100%; }
+
+/* Inputs herdam a tipografia */
+input, button, textarea, select { font: inherit; color: inherit; }
+
+/* Texto longo quebra com elegância */
+p, h1, h2, h3, h4, li { overflow-wrap: break-word; text-wrap: pretty; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: var(--leading-tight); }
+
+ul, ol { list-style: none; padding: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+/* Foco visível e consistente (acessibilidade) — nunca remover outline sem
+   substituir. Usamos um anel azul de confiança. */
+:focus-visible {
+  outline: 2px solid var(--color-blue-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+button { cursor: pointer; background: none; border: none; }
+
+/* Respeita quem prefere menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

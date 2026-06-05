@@ -1,0 +1,93 @@
+/* ============================================================
+   Button.css
+   ============================================================ */
+
+.csm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* leve feedback tátil ao pressionar */
+.csm-btn:active:not(:disabled) { transform: translateY(1px); }
+
+.csm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Tamanhos: md/lg garantem alvo de toque ≥ 44px ---- */
+.csm-btn--sm {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+}
+.csm-btn--md {
+  min-height: var(--tap-target);     /* 44px */
+  padding: 0 var(--space-4);
+  font-size: var(--text-body);
+}
+.csm-btn--lg {
+  min-height: 52px;
+  padding: 0 var(--space-6);
+  font-size: var(--text-h3);
+}
+
+.csm-btn--block { display: flex; width: 100%; }
+
+/* ---- Variantes ---- */
+/* primary: ação principal positiva → verde da marca */
+.csm-btn--primary {
+  background: var(--color-green-primary);
+  color: var(--color-text-on-color);
+}
+.csm-btn--primary:hover:not(:disabled) { background: var(--color-green-dark); }
+
+/* secondary: ação de confiança/neutra com peso → contorno */
+.csm-btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.csm-btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-text-secondary);
+  background: var(--color-background);
+}
+
+/* ghost: ação terciária, sem peso visual */
+.csm-btn--ghost {
+  background: transparent;
+  color: var(--color-blue-primary);
+}
+.csm-btn--ghost:hover:not(:disabled) { background: var(--color-blue-soft); }
+
+/* danger: ação destrutiva (ex.: finalizar/zerar) → laranja-alerta.
+   A paleta não tem vermelho de propósito; laranja sinaliza atenção. */
+.csm-btn--danger {
+  background: var(--color-orange-alert);
+  color: var(--color-text-on-color);
+}
+.csm-btn--danger:hover:not(:disabled) { filter: brightness(0.94); }
+
+.csm-btn__icon { display: inline-flex; }
+.csm-btn__label { display: inline-flex; }
+
+/* spinner de carregamento (sem cor extra; usa currentColor) */
+.csm-btn__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-pill);
+  animation: csm-btn-spin 0.6s linear infinite;
+}
+@keyframes csm-btn-spin { to { transform: rotate(360deg); } }

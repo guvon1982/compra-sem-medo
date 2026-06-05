@@ -1,0 +1,81 @@
+/* ============================================================
+   Home.css
+   ============================================================ */
+
+.csm-home__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 var(--space-1);
+}
+.csm-home__tagline {
+  font-size: var(--text-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+.csm-home__tagline strong { font-weight: var(--font-weight-bold); }
+.csm-home__sub {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-normal);
+}
+
+/* rótulo acima de um bloco (espaço de 8px) */
+.csm-home__above { margin-bottom: var(--space-2); }
+
+/* card da compra atual: herói + ação, divididos por borda fina */
+.csm-home__current { overflow: hidden; }
+.csm-home__current-action {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---- Atalhos ---- */
+.csm-home__shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+/* o Card é um <button>: reseta o alinhamento de texto */
+.csm-home__shortcut {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+}
+.csm-home__shortcut-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+}
+.csm-home__shortcut-icon--blue {
+  background: var(--color-blue-soft);
+  color: var(--color-blue-primary);
+}
+.csm-home__shortcut-icon--green {
+  background: var(--color-green-soft);
+  color: var(--color-green-dark);
+}
+.csm-home__shortcut-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.csm-home__shortcut-title {
+  font-size: var(--text-h3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+.csm-home__shortcut-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+.csm-home__shortcut-chev { color: var(--color-text-secondary); flex-shrink: 0; }
