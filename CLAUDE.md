@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** a ser criada (`feature/design-system`).
+**Branch padrao:** `develop`. **Branch atual de trabalho:** a ser criada (`feature/context-estado`) — proxima entrega e a Fase 4.
 
 ### O que ja foi feito
 
@@ -19,14 +19,37 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - `Protect develop`: requer PR, requer check `Lint, testes e build` verde, bloqueia force push.
   - `Protect main`: idem + `Restrict deletions` + `Require linear history`.
   - Validado: push direto em `main` rejeitado com `GH013`.
+- **PR #4 mergeado (2026-06-05):** Design System integrado do handoff do Claude Design (ver `docs/DESIGN_SYSTEM_ORIGIN.md`).
+  - **Estrutura:** `src/styles/{tokens,base,layout}.css`, 12 componentes em `src/components/` (Button, Input, Card, ProductItem, ShoppingListItem, BudgetProgress, Header, BottomNavigation, AlertMessage, EmptyState, Icon — 24 SVGs custom, Logo — carrinho com cadeado), 3 paginas em `src/pages/` (Home, Cadastro, Listagem com 3 abas + modal de finalizar), `src/data/mock.js` com produtos brasileiros, `src/utils/currency.js`.
+  - **Adaptacoes:** roteamento `react-router` v7 com `BrowserRouter` em `main.jsx` + `<Routes>` em `App.jsx`; `BottomNavigation` usa `<NavLink>` (detecta rota ativa sozinho); paginas usam `useNavigate`; named imports de hooks (sem `React.useX`); `Header` mostra titulo mesmo sem `onBack`; mensagem de sucesso do Cadastro reformulada.
+  - **Layout responsivo:** mobile-first ate 767px; ≥ 768px centraliza em `--app-max-width: 480px` com bordas finas (sem mockup de celular).
+  - **Testes:** `src/App.test.jsx` cobre as 3 rotas com `MemoryRouter` — 3 passando.
+  - **ESLint:** `docs/**` adicionado a `globalIgnores` (handoff e referencia, nao codigo do app).
 
-### Roteiro restante
+### Limitacao conhecida (esperada — sera resolvida na Fase 4)
 
-- **Fase 3 (em andamento):** `feature/design-system` — Design System adotado do handoff do Claude Design (ver `docs/DESIGN_SYSTEM_ORIGIN.md`). Inclui tokens, base, layout, 12 componentes (Button, Input, Card, ProductItem, ShoppingListItem, BudgetProgress, Header, BottomNavigation, AlertMessage, EmptyState, Icon, Logo), mock data brasileiro e 3 paginas (Home, Cadastro, Listagem com 3 abas + modal de finalizar). Roteamento com react-router v7 + NavLink. Layout responsivo (mobile-first ate 767px; centralizado em 480px ≥ 768px).
-- **Limitacao conhecida da Fase 3:** cada pagina mantem seu proprio estado local com dados mock — Cadastro nao persiste produto no catalogo da Listagem; Home e Listagem nao compartilham a compra atual. Resolvido na Fase 4.
-- **Fase 4 (proxima):** Context API + useReducer em `src/contexts/` para estado compartilhado (catalogo, compra atual, meta, historico). Cadastro passa a injetar no catalogo; Listagem reflete; Home mostra resumo real.
-- **Fase 5:** json-server para o catalogo de produtos (services em `src/services/produtoService.js`); `localStorage` em `src/storage/` para compra atual, meta e historico.
-- **Depois:** features de F1-F11 conforme PRD, uma branch por user story ou agrupamento logico.
+Cada pagina mantem estado local com dados mock. Em particular:
+- Cadastro mostra alerta de sucesso mas **nao persiste o produto** no catalogo da Listagem.
+- Home calcula seu proprio total a partir de `COMPRA_INICIAL` (mock); Listagem mantem seu proprio `compraEntries`. Os dois nao se enxergam.
+- Historico arquivado na Listagem nao sobrevive a reload.
+
+### Proxima fase — Fase 4 — `feature/context-estado`
+
+Centralizar o estado em Context API + useReducer.
+
+1. Criar `src/contexts/CatalogoContext.jsx` (provider + reducer): estado `{ produtos }`, acoes `adicionarProduto`, `editarProduto`, `removerProduto`. Inicializa com `PRODUTOS` do mock.
+2. Criar `src/contexts/CompraContext.jsx` (provider + reducer): estado `{ compraAtual, meta, historicoCompras }`, acoes `adicionarItem(produtoId)`, `incrementar(id)`, `decrementar(id)`, `removerItem(id)`, `definirMeta(valor)`, `finalizarCompra()`. Inicializa com `COMPRA_INICIAL`/`META_INICIAL`/`HISTORICO` do mock.
+3. Wrappar `<App />` em `main.jsx` com os dois providers (ordem: Catalogo > Compra, pois compra referencia produtos pelo id).
+4. Substituir `useState` local nas paginas por `useContext` + `dispatch`. Listagem fica bem mais enxuta; Cadastro injeta no catalogo de verdade; Home mostra compra real.
+5. Smoke tests para reducers (entrada -> acao -> estado esperado).
+6. Mock data continua existindo so como seed inicial dos contextos — depois ele sai quando entrar json-server (Fase 5).
+
+### Roteiro restante apos Fase 4
+
+- **Fase 5:** json-server para o catalogo de produtos. Services em `src/services/produtoService.js` (`criar/obter/listar/atualizar/remover` encapsulando `fetch`). `db.json` na raiz versionado. Container Docker ja expoe a porta 3000. Catalogo passa a vir da API; cadastro POSTa para a API.
+- **Fase 6:** persistencia local. `src/storage/useLocalStorage.js` (hook generico). `CompraContext` lê/escreve em `localStorage` automaticamente. Garantia de RN8 (reload nao perde dados).
+- **Fase 7:** polimento — empty states reais, mensagens de erro de rede, loading states no consumo da API, acessibilidade revisada, ajustes finos de responsividade.
+- **Depois:** features de F1-F11 que ainda nao tiverem caido nas fases acima.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
