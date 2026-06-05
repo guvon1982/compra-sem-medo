@@ -8,19 +8,22 @@ import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
 import Icon from "../../components/Icon";
 import { CATEGORIAS, UNIDADES } from "../../data/mock";
+import { parsePreco } from "../../utils/currency";
+import { useCatalogo } from "../../contexts/CatalogoContext";
 
 /* ============================================================
    Cadastro (/cadastro) — formulario para criar produto novo.
    Campos: nome, categoria, unidade e preco (necessario para o
    calculo de total/subtotal). Validacao inline por campo.
 
-   Por enquanto o produto cadastrado so e mostrado num alerta de
-   sucesso; a persistencia entra na proxima feature (estado
-   compartilhado + service de produtos).
+   Apos validar, despacha `adicionarProduto` no CatalogoContext,
+   entao o produto novo passa a aparecer no catalogo da Listagem.
+   A persistencia em backend/localStorage vem nas proximas fases.
    ============================================================ */
 
 export default function Cadastro() {
   const navigate = useNavigate();
+  const { adicionarProduto } = useCatalogo();
   const [form, setForm] = useState({ nome: "", categoria: "", unidade: "", preco: "" });
   const [errors, setErrors] = useState({});
   const [sucesso, setSucesso] = useState(null);
@@ -29,11 +32,6 @@ export default function Cadastro() {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
     setErrors((er) => ({ ...er, [campo]: undefined }));
   };
-
-  function parsePreco(txt) {
-    const n = parseFloat(String(txt).replace(/\./g, "").replace(",", "."));
-    return Number.isFinite(n) ? n : NaN;
-  }
 
   function validar() {
     const er = {};
@@ -54,6 +52,13 @@ export default function Cadastro() {
       setSucesso(null);
       return;
     }
+    // Persiste no catalogo via Context — Listagem ja vai enxergar este produto.
+    adicionarProduto({
+      name: form.nome.trim(),
+      category: form.categoria,
+      unit: form.unidade,
+      price: parsePreco(form.preco),
+    });
     setSucesso(form.nome.trim());
     setForm({ nome: "", categoria: "", unidade: "", preco: "" });
   }
@@ -65,13 +70,29 @@ export default function Cadastro() {
       <main className="csm-screen__main">
         <form className="csm-content" onSubmit={handleSubmit} noValidate>
           {sucesso && (
-            <AlertMessage
-              variant="success"
-              title="Produto cadastrado com sucesso!"
-              onClose={() => setSucesso(null)}
+            <section
+              className="csm-cadastro__sucesso"
+              aria-label="Cadastro concluido"
             >
-              Adicionamos “{sucesso}” ao seu catálogo.
-            </AlertMessage>
+              <AlertMessage
+                variant="success"
+                title="Produto cadastrado com sucesso!"
+                onClose={() => setSucesso(null)}
+              >
+                Adicionamos “{sucesso}” ao seu catálogo.
+              </AlertMessage>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  navigate("/listagem", { state: { aba: "catalogo" } })
+                }
+                iconRight={<Icon name="avancar" size={16} />}
+              >
+                Ver no catálogo
+              </Button>
+            </section>
           )}
 
           <Input

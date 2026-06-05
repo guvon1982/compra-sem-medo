@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import "./Listagem.css";
 import Header from "../../components/Header";
 import BottomNavigation from "../../components/BottomNavigation";
@@ -12,15 +12,10 @@ import ShoppingListItem from "../../components/ShoppingListItem";
 import AlertMessage from "../../components/AlertMessage";
 import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
-import {
-  PRODUTOS,
-  CATEGORIAS,
-  ICONE_CATEGORIA,
-  COMPRA_INICIAL,
-  META_INICIAL,
-  HISTORICO,
-} from "../../data/mock";
+import { CATEGORIAS, ICONE_CATEGORIA } from "../../data/mock";
 import { formatBRL } from "../../utils/currency";
+import { useCatalogo } from "../../contexts/CatalogoContext";
+import { useCompra } from "../../contexts/CompraContext";
 
 /* ============================================================
    Listagem (/listagem) — tela combinada em 3 abas:
@@ -29,8 +24,9 @@ import { formatBRL } from "../../utils/currency";
    • Historico: compras anteriores
    O heroi (total) fica fixo no topo nas abas de compra/catalogo.
 
-   MVP visual: estado local inicializado com dados mock. Vai
-   migrar para Context na proxima feature.
+   Catalogo e compra vem agora do Context (CatalogoContext e
+   CompraContext). Estado local aqui guarda apenas UI: qual aba
+   esta ativa, o texto da busca, e os flags de modal/alerta.
    ============================================================ */
 
 const TABS = [
@@ -46,73 +42,59 @@ function montarItem(entrada, catalogo) {
   return { ...produto, quantity: entrada.quantity };
 }
 
+// chaves validas de aba — usado para sanitizar o que vem na navegacao
+const TAB_KEYS = TABS.map((t) => t.key);
+
 export default function Listagem() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { produtos } = useCatalogo();
+  const {
+    compraAtual,
+    meta,
+    historicoCompras,
+    adicionarItem,
+    incrementar,
+    decrementar,
+    removerItem,
+    finalizarCompra,
+  } = useCompra();
 
-  // Estado local — temporario, vira Context na proxima feature
-  const [tab, setTab] = useState("compra");
+  // Estado local — apenas UI (qual aba, texto da busca, flags de modal/alerta).
+  // Aba inicial pode vir como "recado" da pagina anterior via state da navegacao
+  // (ex.: Cadastro envia { aba: "catalogo" } depois de salvar um produto).
+  // Lazy initializer (funcao dentro do useState) roda so no primeiro mount.
+  const [tab, setTab] = useState(() => {
+    const abaSugerida = location.state?.aba;
+    return TAB_KEYS.includes(abaSugerida) ? abaSugerida : "compra";
+  });
   const [busca, setBusca] = useState("");
   const [confirmar, setConfirmar] = useState(false);
   const [finalizada, setFinalizada] = useState(null);
 
-  const [compraEntries, setCompraEntries] = useState(COMPRA_INICIAL);
-  const [budget] = useState(META_INICIAL);
-  const [historico, setHistorico] = useState(HISTORICO);
-
-  // Itens da compra atual com nome/preco/unidade resolvidos
+  // Itens da compra atual com nome/preco/unidade resolvidos do catalogo.
   const list = useMemo(
-    () => compraEntries.map((e) => montarItem(e, PRODUTOS)).filter(Boolean),
-    [compraEntries],
+    () => compraAtual.map((e) => montarItem(e, produtos)).filter(Boolean),
+    [compraAtual, produtos],
   );
 
   const total = list.reduce((s, i) => s + i.price * i.quantity, 0);
   const itemCount = list.reduce((s, i) => s + i.quantity, 0);
+  const budget = meta;
   const over = budget != null && total > budget;
 
   const addedIds = new Set(list.map((i) => i.id));
 
-  const filtrados = PRODUTOS.filter((p) =>
+  const filtrados = produtos.filter((p) =>
     p.name.toLowerCase().includes(busca.trim().toLowerCase()),
   );
 
-  // Handlers locais (vao para o reducer do Context na proxima feature)
-  function onAdd(produtoId) {
-    setCompraEntries((prev) => {
-      const ja = prev.find((e) => e.id === produtoId);
-      if (ja) return prev.map((e) => (e.id === produtoId ? { ...e, quantity: e.quantity + 1 } : e));
-      return [...prev, { id: produtoId, quantity: 1 }];
-    });
-  }
-  function onIncrement(id) {
-    setCompraEntries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, quantity: e.quantity + 1 } : e)),
-    );
-  }
-  function onDecrement(id) {
-    setCompraEntries((prev) =>
-      prev
-        .map((e) => (e.id === id ? { ...e, quantity: e.quantity - 1 } : e))
-        .filter((e) => e.quantity > 0),
-    );
-  }
-  function onRemove(id) {
-    setCompraEntries((prev) => prev.filter((e) => e.id !== id));
-  }
-
   function confirmarFinalizar() {
     setConfirmar(false);
-    const registro = {
-      id: `h-${Date.now()}`,
-      data: new Date().toLocaleDateString("pt-BR", {
-        day: "2-digit", month: "short", year: "numeric",
-      }),
-      total,
-      itens: itemCount,
-      meta: budget,
-    };
-    setHistorico((prev) => [registro, ...prev]);
+    // Guardamos o resumo aqui para mostrar no alerta de sucesso ANTES de
+    // disparar finalizarCompra (que zera compraAtual e portanto zera total).
     setFinalizada({ total, itens: itemCount });
-    setCompraEntries([]);
+    finalizarCompra({ total, itens: itemCount });
     setTab("historico");
   }
 
@@ -201,9 +183,9 @@ export default function Listagem() {
                           unitPrice={item.price}
                           quantity={item.quantity}
                           unit={item.unit}
-                          onIncrement={() => onIncrement(item.id)}
-                          onDecrement={() => onDecrement(item.id)}
-                          onRemove={() => onRemove(item.id)}
+                          onIncrement={() => incrementar(item.id)}
+                          onDecrement={() => decrementar(item.id)}
+                          onRemove={() => removerItem(item.id)}
                         />
                       </li>
                     ))}
@@ -268,7 +250,7 @@ export default function Listagem() {
                               price={p.price}
                               added={addedIds.has(p.id)}
                               icon={<Icon name={ICONE_CATEGORIA[p.category] || "caixa"} size={20} />}
-                              onAdd={() => onAdd(p.id)}
+                              onAdd={() => adicionarItem(p.id)}
                             />
                           </li>
                         ))}
@@ -284,7 +266,7 @@ export default function Listagem() {
         {/* ---- ABA: HISTORICO ---- */}
         {tab === "historico" && (
           <div className="csm-content">
-            {historico.length === 0 ? (
+            {historicoCompras.length === 0 ? (
               <EmptyState
                 icon="historico"
                 title="Nenhuma compra anterior"
@@ -292,7 +274,7 @@ export default function Listagem() {
               />
             ) : (
               <ul className="csm-listagem__hist">
-                {historico.map((h) => {
+                {historicoCompras.map((h) => {
                   const passou = h.meta != null && h.total > h.meta;
                   return (
                     <li key={h.id}>

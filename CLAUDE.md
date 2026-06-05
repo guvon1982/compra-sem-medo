@@ -44,6 +44,17 @@ Centralizar o estado em Context API + useReducer.
 5. Smoke tests para reducers (entrada -> acao -> estado esperado).
 6. Mock data continua existindo so como seed inicial dos contextos — depois ele sai quando entrar json-server (Fase 5).
 
+### Decisoes pendentes — CRUD de produtos
+
+Levantado durante o teste manual da Fase 4 (2026-06-05). Precisa ser tratado em **branch propria** apos o merge da Fase 4 (sugestao: `feature/produto-crud`):
+
+- **Confirmar escopo:** ler `docs/PRD.md` e checar se editar/remover produto esta nas F1-F11. Se nao estiver, decidir com o usuario se promove para MVP ou deixa pos-MVP.
+- **Decisoes de design ainda em aberto:**
+  - Onde mora a UI de editar/remover? Dentro do `ProductItem` na aba Catalogo (icones de acao)? Tela nova `/produto/:id`?
+  - Politica de **referencia orfa**: se o usuario remover um produto que esta na `compraAtual` ou no `historicoCompras`, o que acontece? Opcoes: (a) bloquear remocao se houver referencia; (b) remover do catalogo mas manter no historico como "produto descontinuado"; (c) cascata (remove tambem dos lugares onde aparece — perigoso para historico).
+  - Sao editaveis os produtos do `mock.js` (seed inicial) ou so os cadastrados pelo usuario? Tem implicacao em RN1-RN10 (verificar).
+- **Reducer ja tem as acoes** `editarProduto` e `removerProduto` prontas e testadas — falta so a camada de UI + a decisao de politica acima.
+
 ### Roteiro restante apos Fase 4
 
 - **Fase 5:** json-server para o catalogo de produtos. Services em `src/services/produtoService.js` (`criar/obter/listar/atualizar/remover` encapsulando `fetch`). `db.json` na raiz versionado. Container Docker ja expoe a porta 3000. Catalogo passa a vir da API; cadastro POSTa para a API.
@@ -89,6 +100,18 @@ Regras inegociaveis para qualquer codigo escrito neste repositorio:
 8. **Codigo legivel antes de codigo esperto.** Nome de variavel diz o que e. Funcao curta. Comentario so quando o porque nao for obvio (o que ela faz o codigo ja diz).
 9. **Sem dependencia que nao foi acordada.** Antes de `npm install`, verificar se ja existe solucao com o que esta na stack.
 10. **DRY com bom senso.** Repetir 2 vezes esta OK. 3+ vezes ja pede abstracao.
+
+## Validacao manual no navegador
+
+Antes de qualquer commit ou abertura de PR que afete comportamento visivel da aplicacao (nova feature, refatoracao que troca fonte de dados, mudanca de fluxo, formulario, calculo exibido, navegacao), o assistente deve **propor um roteiro de teste manual** para o usuario rodar. Padrao:
+
+1. Garantir que `lint`, `test:run` e `build` estao verdes (dentro do container).
+2. Sugerir subir o `npm run dev` no container.
+3. Listar passos numerados em portugues, no formato "faca X, espere ver Y", cobrindo o caminho feliz da mudanca + ao menos um caso de borda relevante (estado vazio, valor invalido, meta excedida, etc.).
+4. **O usuario executa o teste**; o assistente nao deve tentar dirigir o navegador via tooling.
+5. So seguir para commit/PR apos o usuario confirmar que passou. Se aparecer bug, corrigir e oferecer novo roteiro.
+
+Mudancas puramente internas sem efeito visivel (renomear variavel, ajustar comentario, mexer em config) nao precisam de roteiro — basta confirmar que os checks automatizados continuam verdes.
 
 ## Escopo (resumo — detalhe em `docs/PRD.md`)
 
