@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** a ser criada (`feature/context-estado`) — proxima entrega e a Fase 4.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 4 mergeada via PR #6 em 2026-06-05). Proxima feature a definir — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -25,24 +25,25 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Layout responsivo:** mobile-first ate 767px; ≥ 768px centraliza em `--app-max-width: 480px` com bordas finas (sem mockup de celular).
   - **Testes:** `src/App.test.jsx` cobre as 3 rotas com `MemoryRouter` — 3 passando.
   - **ESLint:** `docs/**` adicionado a `globalIgnores` (handoff e referencia, nao codigo do app).
+- **PR #6 mergeado em `develop` (2026-06-05):** Fase 4 completa — Context API + reducers + ajustes pos-validacao.
+  - **Contextos:** `src/contexts/CatalogoContext.jsx` (produtos) e `src/contexts/CompraContext.jsx` (compraAtual, meta, historicoCompras), cada um com reducer puro separado (`*Reducer.js`) e a "cola" React (`*Context.jsx`). Providers em `main.jsx` na ordem **Catalogo > Compra** (compra referencia produtos por id).
+  - **Paginas refatoradas:** Home, Cadastro e Listagem consomem via `useCatalogo`/`useCompra`. Cadastro persiste no catalogo de verdade (acao `adicionarProduto`); Home reflete a compra real; Listagem deixa de manter copia local do estado e mantem apenas UI state (aba ativa, busca, flags de modal).
+  - **UX:** apos salvar produto, alerta de sucesso ganha botao "Ver no catalogo" que abre Listagem direto na aba Catalogo via `location.state.aba` do `react-router`.
+  - **Fix bonus:** `parsePreco` extraida para `src/utils/currency.js` com heuristica que aceita `9,90`, `9.90`, `1.234,56`, `1234.56` etc. — resolve bug onde `9.90` virava 990.
+  - **Testes:** subiu de 3 para 33 (13 dos reducers + 17 de `currency` + 3 smoke do App).
 
-### Limitacao conhecida (esperada — sera resolvida na Fase 4)
+### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-Cada pagina mantem estado local com dados mock. Em particular:
-- Cadastro mostra alerta de sucesso mas **nao persiste o produto** no catalogo da Listagem.
-- Home calcula seu proprio total a partir de `COMPRA_INICIAL` (mock); Listagem mantem seu proprio `compraEntries`. Os dois nao se enxergam.
-- Historico arquivado na Listagem nao sobrevive a reload.
+- **Reload zera o estado** — recarregar a pagina volta tudo para o seed do mock (`PRODUTOS`, `COMPRA_INICIAL`, `META_INICIAL`, `HISTORICO`). Sera resolvido na **Fase 6** (persistencia em `localStorage`).
+- **Catalogo vem do mock** — `src/data/mock.js` ainda e a fonte do catalogo de produtos. Sera resolvido na **Fase 5** (json-server + `src/services/produtoService.js`).
+- **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
 
-### Proxima fase — Fase 4 — `feature/context-estado`
+### Proxima fase
 
-Centralizar o estado em Context API + useReducer.
+A definir entre duas opcoes (decisao com o usuario):
 
-1. Criar `src/contexts/CatalogoContext.jsx` (provider + reducer): estado `{ produtos }`, acoes `adicionarProduto`, `editarProduto`, `removerProduto`. Inicializa com `PRODUTOS` do mock.
-2. Criar `src/contexts/CompraContext.jsx` (provider + reducer): estado `{ compraAtual, meta, historicoCompras }`, acoes `adicionarItem(produtoId)`, `incrementar(id)`, `decrementar(id)`, `removerItem(id)`, `definirMeta(valor)`, `finalizarCompra()`. Inicializa com `COMPRA_INICIAL`/`META_INICIAL`/`HISTORICO` do mock.
-3. Wrappar `<App />` em `main.jsx` com os dois providers (ordem: Catalogo > Compra, pois compra referencia produtos pelo id).
-4. Substituir `useState` local nas paginas por `useContext` + `dispatch`. Listagem fica bem mais enxuta; Cadastro injeta no catalogo de verdade; Home mostra compra real.
-5. Smoke tests para reducers (entrada -> acao -> estado esperado).
-6. Mock data continua existindo so como seed inicial dos contextos — depois ele sai quando entrar json-server (Fase 5).
+- **Opcao A — Fase 5 (json-server)**: seguir a ordem do roadmap original. Detalhes em "Roteiro restante apos Fase 4" abaixo.
+- **Opcao B — `feature/produto-crud` primeiro**: resolver as decisoes pendentes do CRUD de produtos antes de migrar para a API. Vantagem: implementa UI completa do CRUD ainda contra o Context (sem dependencia de rede); a Fase 5 depois so troca a fonte de dados. Pontos a tratar antes de codar em "Decisoes pendentes — CRUD de produtos" abaixo.
 
 ### Decisoes pendentes — CRUD de produtos
 
