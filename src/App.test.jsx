@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, it, expect } from 'vitest'
 import App from './App'
+import { CatalogoProvider } from './contexts/CatalogoContext'
+import { CompraProvider } from './contexts/CompraContext'
 
 /* ============================================================
    Smoke tests do App.
@@ -9,13 +11,20 @@ import App from './App'
    (versao de BrowserRouter pensada para testes — guarda a URL
    na memoria, sem precisar de window.history) e confirma que
    a tela correspondente renderizou.
+
+   As paginas dependem dos contextos para ler catalogo/compra,
+   entao envelopamos com os Providers (mesma ordem do main.jsx).
    ============================================================ */
 
 function renderEmRota(rota) {
   return render(
-    <MemoryRouter initialEntries={[rota]}>
-      <App />
-    </MemoryRouter>,
+    <CatalogoProvider>
+      <CompraProvider>
+        <MemoryRouter initialEntries={[rota]}>
+          <App />
+        </MemoryRouter>
+      </CompraProvider>
+    </CatalogoProvider>,
   )
 }
 

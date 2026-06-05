@@ -7,20 +7,16 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
-import {
-  PRODUTOS,
-  COMPRA_INICIAL,
-  META_INICIAL,
-} from "../../data/mock";
+import { useCatalogo } from "../../contexts/CatalogoContext";
+import { useCompra } from "../../contexts/CompraContext";
 
 /* ============================================================
    Home (/) — apresenta o app, mostra a compra em andamento
    (total + meta) se houver, e atalhos para Cadastro e Compra.
    Estado vazio amigavel quando nao ha compra.
 
-   MVP visual: deriva total/itens diretamente da compra mock.
-   Na proxima feature, esses valores virao do Context (compra
-   compartilhada entre paginas).
+   Agora consome a compra e o catalogo dos contextos: o que
+   aparece aqui reflete o que esta acontecendo na Listagem.
    ============================================================ */
 
 function totalDaCompra(itens) {
@@ -33,11 +29,13 @@ function totalDeItens(itens) {
 
 export default function Home() {
   const navigate = useNavigate();
+  const { produtos } = useCatalogo();
+  const { compraAtual, meta } = useCompra();
 
-  // Junta as quantidades de COMPRA_INICIAL com os dados do PRODUTO correspondente
-  const itensDaCompra = COMPRA_INICIAL
+  // Junta cada entrada da compra (id + quantity) com os dados do produto.
+  const itensDaCompra = compraAtual
     .map((entrada) => {
-      const produto = PRODUTOS.find((p) => p.id === entrada.id);
+      const produto = produtos.find((p) => p.id === entrada.id);
       return produto ? { ...produto, quantity: entrada.quantity } : null;
     })
     .filter(Boolean);
@@ -45,7 +43,7 @@ export default function Home() {
   const hasPurchase = itensDaCompra.length > 0;
   const total = totalDaCompra(itensDaCompra);
   const itemCount = totalDeItens(itensDaCompra);
-  const budget = META_INICIAL;
+  const budget = meta;
 
   return (
     <div className="csm-screen">

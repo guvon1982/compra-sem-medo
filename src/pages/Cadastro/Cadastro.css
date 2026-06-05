@@ -8,3 +8,10 @@
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
+
+/* agrupa alerta de sucesso + atalho "Ver no catalogo" */
+.csm-cadastro__sucesso {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
