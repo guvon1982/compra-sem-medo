@@ -10,53 +10,53 @@ import { formatBRL } from "../../utils/currency";
    ============================================================ */
 
 export default function ShoppingListItem({
-  name,
-  unitPrice,
-  quantity,
-  unit,
+  nome,
+  precoUnitario,
+  quantidade,
+  unidade,
   onIncrement,
   onDecrement,
   onRemove,
 }) {
-  const subtotal = unitPrice * quantity;
+  const subtotal = precoUnitario * quantidade;
 
   return (
     <article className="csm-listitem">
       <div className="csm-listitem__head">
-        <p className="csm-listitem__name">{name}</p>
+        <p className="csm-listitem__name">{nome}</p>
         <span className="csm-listitem__subtotal">{formatBRL(subtotal)}</span>
       </div>
 
       <div className="csm-listitem__controls">
-        <div className="csm-stepper" role="group" aria-label={`Quantidade de ${name}`}>
+        <div className="csm-stepper" role="group" aria-label={`Quantidade de ${nome}`}>
           <button
             type="button"
             className="csm-stepper__btn"
             onClick={onDecrement}
-            aria-label={`Diminuir quantidade de ${name}`}
+            aria-label={`Diminuir quantidade de ${nome}`}
           >
             <Icon name="menos" size={18} />
           </button>
-          <span className="csm-stepper__value" aria-live="polite">{quantity}</span>
+          <span className="csm-stepper__value" aria-live="polite">{quantidade}</span>
           <button
             type="button"
             className="csm-stepper__btn"
             onClick={onIncrement}
-            aria-label={`Aumentar quantidade de ${name}`}
+            aria-label={`Aumentar quantidade de ${nome}`}
           >
             <Icon name="mais" size={18} />
           </button>
         </div>
 
         <span className="csm-listitem__unit">
-          {formatBRL(unitPrice)} <span className="csm-listitem__unit-label">/ {unit}</span>
+          {formatBRL(precoUnitario)} <span className="csm-listitem__unit-label">/ {unidade}</span>
         </span>
 
         <button
           type="button"
           className="csm-listitem__remove"
           onClick={onRemove}
-          aria-label={`Remover ${name} da compra`}
+          aria-label={`Remover ${nome} da compra`}
         >
           <Icon name="lixeira" size={18} />
         </button>

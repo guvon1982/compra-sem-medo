@@ -7,6 +7,7 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
+import AlertMessage from "../../components/AlertMessage";
 import { useCatalogo } from "../../contexts/CatalogoContext";
 import { useCompra } from "../../contexts/CompraContext";
 
@@ -20,23 +21,23 @@ import { useCompra } from "../../contexts/CompraContext";
    ============================================================ */
 
 function totalDaCompra(itens) {
-  return itens.reduce((soma, item) => soma + item.price * item.quantity, 0);
+  return itens.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
 }
 
 function totalDeItens(itens) {
-  return itens.reduce((soma, item) => soma + item.quantity, 0);
+  return itens.reduce((soma, item) => soma + item.quantidade, 0);
 }
 
 export default function Home() {
   const navigate = useNavigate();
-  const { produtos } = useCatalogo();
+  const { produtos, carregando, erro } = useCatalogo();
   const { compraAtual, meta } = useCompra();
 
-  // Junta cada entrada da compra (id + quantity) com os dados do produto.
+  // Junta cada entrada da compra (id + quantidade) com os dados do produto.
   const itensDaCompra = compraAtual
     .map((entrada) => {
       const produto = produtos.find((p) => p.id === entrada.id);
-      return produto ? { ...produto, quantity: entrada.quantity } : null;
+      return produto ? { ...produto, quantidade: entrada.quantidade } : null;
     })
     .filter(Boolean);
 
@@ -61,8 +62,23 @@ export default function Home() {
             </p>
           </section>
 
-          {/* compra em andamento OU estado vazio */}
-          {hasPurchase ? (
+          {/* erro de rede do catalogo, se houver */}
+          {erro && (
+            <AlertMessage variant="error" title="Falha ao carregar o catálogo">
+              {erro} Confira se o `json-server` está no ar (porta 3000).
+            </AlertMessage>
+          )}
+
+          {/* compra em andamento OU estado vazio (com fallback de carregamento) */}
+          {carregando ? (
+            <Card padding="none">
+              <EmptyState
+                icon="carrinho"
+                title="Carregando catálogo..."
+                description="Buscando os produtos no servidor."
+              />
+            </Card>
+          ) : hasPurchase ? (
             <section aria-label="Compra em andamento">
               <p className="csm-section-label csm-home__above">Compra em andamento</p>
               <Card padding="none" className="csm-home__current">

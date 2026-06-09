@@ -1,11 +1,16 @@
-import { createContext, useContext, useMemo, useReducer } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { catalogoReducer, estadoInicialCatalogo } from "./catalogoReducer";
+import * as produtoService from "../services/produtoService";
 
 /* ============================================================
    CatalogoContext — "caixa compartilhada" do catalogo de
-   produtos. Qualquer pagina dentro do <CatalogoProvider>
-   consegue ler `produtos` e despachar acoes (adicionar/editar/
-   remover) atraves do hook `useCatalogo`.
+   produtos. Le do json-server na montagem inicial e expoe
+   acoes async (criar/editar/remover) que tambem batem na API.
+
+   Estado exposto: { produtos, carregando, erro } + acoes.
+
+   Quem chama uma acao async pode `await` para saber quando
+   terminou (util pro Cadastro mostrar erro de rede no form).
    ============================================================ */
 
 const CatalogoContext = createContext(null);
@@ -13,19 +18,65 @@ const CatalogoContext = createContext(null);
 export function CatalogoProvider({ children }) {
   const [state, dispatch] = useReducer(catalogoReducer, estadoInicialCatalogo);
 
-  // useMemo evita criar um objeto novo a cada render — sem isso, todo
-  // componente que consome o contexto rerenderizaria mesmo sem mudanca real.
+  // Carregamento inicial: chama listar() uma unica vez na montagem.
+  // A flag `cancelado` evita atualizar estado se o componente desmontar
+  // antes da resposta chegar (cleanup do useEffect).
+  useEffect(() => {
+    let cancelado = false;
+
+    async function carregar() {
+      dispatch({ type: "iniciarCarregamento" });
+      const resposta = await produtoService.listar();
+      if (cancelado) return;
+
+      if (resposta?.message && !Array.isArray(resposta)) {
+        dispatch({ type: "definirErro", payload: { erro: resposta.message } });
+      } else {
+        dispatch({ type: "definirProdutos", payload: { produtos: resposta } });
+      }
+    }
+
+    carregar();
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
   const value = useMemo(
     () => ({
       produtos: state.produtos,
-      adicionarProduto: (produto) =>
-        dispatch({ type: "adicionarProduto", payload: { produto } }),
-      editarProduto: (id, dados) =>
-        dispatch({ type: "editarProduto", payload: { id, dados } }),
-      removerProduto: (id) =>
-        dispatch({ type: "removerProduto", payload: { id } }),
+      carregando: state.carregando,
+      erro: state.erro,
+
+      adicionarProduto: async (dados) => {
+        const criado = await produtoService.criar(dados);
+        if (criado?.message && !criado?.id) {
+          throw new Error(criado.message);
+        }
+        dispatch({ type: "adicionarProduto", payload: { produto: criado } });
+        return criado;
+      },
+
+      editarProduto: async (id, dados) => {
+        const atualizado = await produtoService.atualizar({ id, ...dados });
+        if (atualizado?.message && !atualizado?.id) {
+          throw new Error(atualizado.message);
+        }
+        dispatch({ type: "editarProduto", payload: { id, dados: atualizado } });
+        return atualizado;
+      },
+
+      removerProduto: async (id) => {
+        const resp = await produtoService.remover({ id });
+        // json-server pode devolver {} ou o objeto removido. So consideramos
+        // erro se vier explicitamente a mensagem "Deu ruim!" do service.
+        if (resp?.message && /^Deu ruim!/.test(resp.message)) {
+          throw new Error(resp.message);
+        }
+        dispatch({ type: "removerProduto", payload: { id } });
+      },
     }),
-    [state.produtos],
+    [state.produtos, state.carregando, state.erro],
   );
 
   return (
@@ -35,10 +86,6 @@ export function CatalogoProvider({ children }) {
   );
 }
 
-// Hook que esconde o useContext + valida que estamos dentro do Provider.
-// O comentario `eslint-disable` abaixo desliga, so para essa linha, uma
-// regra do Fast Refresh do Vite que pede "1 arquivo = 1 componente". No
-// contexto e aceitavel porque hook e provider andam juntos.
 // eslint-disable-next-line react-refresh/only-export-components
 export function useCatalogo() {
   const ctx = useContext(CatalogoContext);

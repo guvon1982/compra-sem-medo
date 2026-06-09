@@ -16,6 +16,21 @@ services:
     ports:
       - "5173:5173" # Vite dev server (npm run dev)
       - "4173:4173" # Vite preview do build (npm run preview)
-      - "3000:3000" # json-server (entra na proxima feature)
     tty: true
     stdin_open: true
+
+  # API REST falsa (json-server) servindo o catalogo de produtos.
+  # Mesmo container do app monta o mesmo volume — assim o db.json esta no repo
+  # e o servico le do mesmo lugar. A porta 3000 e a que o produtoService.js usa
+  # como base URL (http://localhost:3000/produtos).
+  api:
+    image: node:24
+    container_name: compra-sem-medo-api
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "3000:3000"
+    # `--watch` faz o json-server recarregar quando o db.json muda;
+    # `-H 0.0.0.0` deixa ele aceitar conexoes vindas de fora do container.
+    command: sh -c "npx --yes json-server@^1.0.0-beta.15 db.json --port 3000 --host 0.0.0.0"

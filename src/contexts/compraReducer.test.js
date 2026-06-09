@@ -8,63 +8,63 @@ import { compraReducer, estadoInicialCompra } from "./compraReducer";
    ============================================================ */
 
 describe("compraReducer", () => {
-  it("adicionarItem insere produto novo com quantity 1", () => {
+  it("adicionarItem insere produto novo com quantidade 1", () => {
     const base = { ...estadoInicialCompra, compraAtual: [] };
     const state = compraReducer(base, {
       type: "adicionarItem",
       payload: { produtoId: "p1" },
     });
-    expect(state.compraAtual).toEqual([{ id: "p1", quantity: 1 }]);
+    expect(state.compraAtual).toEqual([{ id: "p1", quantidade: 1 }]);
   });
 
   it("adicionarItem incrementa quando o produto ja esta na compra", () => {
     const base = {
       ...estadoInicialCompra,
-      compraAtual: [{ id: "p1", quantity: 2 }],
+      compraAtual: [{ id: "p1", quantidade: 2 }],
     };
     const state = compraReducer(base, {
       type: "adicionarItem",
       payload: { produtoId: "p1" },
     });
-    expect(state.compraAtual).toEqual([{ id: "p1", quantity: 3 }]);
+    expect(state.compraAtual).toEqual([{ id: "p1", quantidade: 3 }]);
   });
 
   it("incrementar soma 1 na quantidade do item informado", () => {
     const base = {
       ...estadoInicialCompra,
-      compraAtual: [{ id: "p1", quantity: 1 }, { id: "p2", quantity: 4 }],
+      compraAtual: [{ id: "p1", quantidade: 1 }, { id: "p2", quantidade: 4 }],
     };
     const state = compraReducer(base, {
       type: "incrementar",
       payload: { id: "p1" },
     });
-    expect(state.compraAtual.find((e) => e.id === "p1").quantity).toBe(2);
-    expect(state.compraAtual.find((e) => e.id === "p2").quantity).toBe(4);
+    expect(state.compraAtual.find((e) => e.id === "p1").quantidade).toBe(2);
+    expect(state.compraAtual.find((e) => e.id === "p2").quantidade).toBe(4);
   });
 
   it("decrementar reduz 1 e remove o item quando chega a zero", () => {
     const base = {
       ...estadoInicialCompra,
-      compraAtual: [{ id: "p1", quantity: 1 }, { id: "p2", quantity: 3 }],
+      compraAtual: [{ id: "p1", quantidade: 1 }, { id: "p2", quantidade: 3 }],
     };
     const state = compraReducer(base, {
       type: "decrementar",
       payload: { id: "p1" },
     });
     expect(state.compraAtual.find((e) => e.id === "p1")).toBeUndefined();
-    expect(state.compraAtual.find((e) => e.id === "p2").quantity).toBe(3);
+    expect(state.compraAtual.find((e) => e.id === "p2").quantidade).toBe(3);
   });
 
   it("removerItem tira o item pelo id", () => {
     const base = {
       ...estadoInicialCompra,
-      compraAtual: [{ id: "p1", quantity: 5 }, { id: "p2", quantity: 1 }],
+      compraAtual: [{ id: "p1", quantidade: 5 }, { id: "p2", quantidade: 1 }],
     };
     const state = compraReducer(base, {
       type: "removerItem",
       payload: { id: "p1" },
     });
-    expect(state.compraAtual).toEqual([{ id: "p2", quantity: 1 }]);
+    expect(state.compraAtual).toEqual([{ id: "p2", quantidade: 1 }]);
   });
 
   it("definirMeta troca o valor da meta", () => {
@@ -77,7 +77,7 @@ describe("compraReducer", () => {
 
   it("finalizarCompra zera a compra e empilha registro no historico", () => {
     const base = {
-      compraAtual: [{ id: "p1", quantity: 2 }],
+      compraAtual: [{ id: "p1", quantidade: 2 }],
       meta: 100,
       historicoCompras: [],
     };

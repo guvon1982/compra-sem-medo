@@ -38,16 +38,15 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 - **Catalogo vem do mock** — `src/data/mock.js` ainda e a fonte do catalogo de produtos. Sera resolvido na **Fase 5** (json-server + `src/services/produtoService.js`).
 - **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
 
-### Proxima fase
+### Proxima fase — Fase 5 (json-server)
 
-A definir entre duas opcoes (decisao com o usuario):
+Decisao tomada em 2026-06-09: seguir a ordem do roadmap (Opcao A). Detalhes em "Roteiro restante apos Fase 4" abaixo.
 
-- **Opcao A — Fase 5 (json-server)**: seguir a ordem do roadmap original. Detalhes em "Roteiro restante apos Fase 4" abaixo.
-- **Opcao B — `feature/produto-crud` primeiro**: resolver as decisoes pendentes do CRUD de produtos antes de migrar para a API. Vantagem: implementa UI completa do CRUD ainda contra o Context (sem dependencia de rede); a Fase 5 depois so troca a fonte de dados. Pontos a tratar antes de codar em "Decisoes pendentes — CRUD de produtos" abaixo.
+A Opcao B (CRUD de produtos via UI) foi **explicitamente deferida** para **depois da Fase 5** — ver "Decisoes pendentes — CRUD de produtos" logo abaixo.
 
 ### Decisoes pendentes — CRUD de produtos
 
-Levantado durante o teste manual da Fase 4 (2026-06-05). Precisa ser tratado em **branch propria** apos o merge da Fase 4 (sugestao: `feature/produto-crud`):
+Levantado durante o teste manual da Fase 4 (2026-06-05). Decidido em 2026-06-09 que sera tratado em **branch propria apos o merge da Fase 5** (sugestao: `feature/produto-crud`). Pontos a resolver antes de codar:
 
 - **Confirmar escopo:** ler `docs/PRD.md` e checar se editar/remover produto esta nas F1-F11. Se nao estiver, decidir com o usuario se promove para MVP ou deixa pos-MVP.
 - **Decisoes de design ainda em aberto:**

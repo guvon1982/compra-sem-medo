@@ -6,16 +6,16 @@ import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
 
    Estado:
    {
-     compraAtual:       [ { id, quantity } ],   // itens da compra em andamento
+     compraAtual:       [ { id, quantidade } ],   // itens da compra em andamento
      meta:              number | null,           // meta de gasto (opcional)
      historicoCompras:  [ { id, data, total, itens, meta } ]
    }
 
    Acoes suportadas:
    - adicionarItem({ produtoId })
-       Se ja existe na compra, incrementa; senao, entra com quantity 1.
-   - incrementar({ id })            -> quantity + 1
-   - decrementar({ id })            -> quantity - 1 (remove o item se chega a 0)
+       Se ja existe na compra, incrementa; senao, entra com quantidade 1.
+   - incrementar({ id })            -> quantidade + 1
+   - decrementar({ id })            -> quantidade - 1 (remove o item se chega a 0)
    - removerItem({ id })            -> tira o item da compra
    - definirMeta({ valor })         -> troca a meta de gasto
    - finalizarCompra({ total, itens, dataAtual })
@@ -50,13 +50,13 @@ export function compraReducer(state, action) {
         return {
           ...state,
           compraAtual: state.compraAtual.map((e) =>
-            e.id === produtoId ? { ...e, quantity: e.quantity + 1 } : e,
+            e.id === produtoId ? { ...e, quantidade: e.quantidade + 1 } : e,
           ),
         };
       }
       return {
         ...state,
-        compraAtual: [...state.compraAtual, { id: produtoId, quantity: 1 }],
+        compraAtual: [...state.compraAtual, { id: produtoId, quantidade: 1 }],
       };
     }
 
@@ -65,7 +65,7 @@ export function compraReducer(state, action) {
       return {
         ...state,
         compraAtual: state.compraAtual.map((e) =>
-          e.id === id ? { ...e, quantity: e.quantity + 1 } : e,
+          e.id === id ? { ...e, quantidade: e.quantidade + 1 } : e,
         ),
       };
     }
@@ -75,8 +75,8 @@ export function compraReducer(state, action) {
       return {
         ...state,
         compraAtual: state.compraAtual
-          .map((e) => (e.id === id ? { ...e, quantity: e.quantity - 1 } : e))
-          .filter((e) => e.quantity > 0),
+          .map((e) => (e.id === id ? { ...e, quantidade: e.quantidade - 1 } : e))
+          .filter((e) => e.quantidade > 0),
       };
     }
 
