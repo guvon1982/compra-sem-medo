@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import "./Cadastro.css";
 import Header from "../../components/Header";
@@ -6,23 +6,31 @@ import BottomNavigation from "../../components/BottomNavigation";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import AlertMessage from "../../components/AlertMessage";
+import Card from "../../components/Card";
 import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
 import { CATEGORIAS, UNIDADES } from "../../data/mock";
 import { parsePreco } from "../../utils/currency";
 import { useCatalogo } from "../../contexts/CatalogoContext";
+import { useCompra } from "../../contexts/CompraContext";
 import * as produtoService from "../../services/produtoService";
 
 /* ============================================================
-   Cadastro — formulario que cria OU edita produto.
+   Cadastro — formulario que cria, edita OU remove produto.
 
    Duas rotas batem aqui:
    - /cadastro       -> modo "criar"
-   - /cadastro/:id   -> modo "editar" (id vem pelos useParams)
+   - /cadastro/:id   -> modo "editar"
 
    Em modo editar, na montagem chamamos produtoService.obter(id)
    para pre-preencher o form (padrao da aula06 do professor).
-   Submit despacha editarProduto OU adicionarProduto no Context.
+
+   No rodape do form em modo editar mora a "zona perigosa":
+   botao "Excluir produto". Politica de orfao: se o produto
+   estiver na compraAtual, o clique nao abre o modal — mostra
+   um aviso inline com link para a Listagem aba Minha compra.
+   Quando livre, abre um modal de confirmacao (foco vai pro
+   botao destrutivo, igual ao padrao do modal de finalizar).
    ============================================================ */
 
 const FORM_VAZIO = { nome: "", categoria: "", unidade: "", preco: "" };
@@ -32,7 +40,8 @@ export default function Cadastro() {
   const { id } = useParams();
   const modoEdicao = Boolean(id);
 
-  const { adicionarProduto, editarProduto } = useCatalogo();
+  const { adicionarProduto, editarProduto, removerProduto } = useCatalogo();
+  const { compraAtual } = useCompra();
   const [form, setForm] = useState(FORM_VAZIO);
   const [errors, setErrors] = useState({});
   const [sucesso, setSucesso] = useState(null);
@@ -42,6 +51,16 @@ export default function Cadastro() {
   // Estado da carga inicial em modo edicao
   const [carregando, setCarregando] = useState(modoEdicao);
   const [naoEncontrado, setNaoEncontrado] = useState(false);
+
+  // Estado da exclusao (so usado em modo edicao)
+  const [bloqueadoOrfao, setBloqueadoOrfao] = useState(false);
+  const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState(null);
+
+  // Produto esta na compra atual? -> bloqueia exclusao.
+  const produtoEstaNaCompra =
+    modoEdicao && compraAtual.some((e) => e.id === id);
 
   // Em modo edicao: busca o produto na API e pre-preenche o form.
   // A flag `cancelado` evita atualizar estado se o componente desmontar
@@ -87,6 +106,22 @@ export default function Cadastro() {
     return () => { cancelado = true; };
   }, [id, modoEdicao]);
 
+  // Acessibilidade do modal de exclusao: ao abrir, foco vai para o botao
+  // destrutivo; ao fechar (depois de aberto), volta para o botao Excluir
+  // que abriu o modal. Mesmo padrao do modal de finalizar na Listagem.
+  const excluirBotaoRef = useRef(null);
+  const confirmarExcluirBotaoRef = useRef(null);
+  const modalJaAbriu = useRef(false);
+
+  useEffect(() => {
+    if (confirmandoExclusao) {
+      modalJaAbriu.current = true;
+      confirmarExcluirBotaoRef.current?.focus();
+    } else if (modalJaAbriu.current) {
+      excluirBotaoRef.current?.focus();
+    }
+  }, [confirmandoExclusao]);
+
   const set = (campo) => (e) => {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
     setErrors((er) => ({ ...er, [campo]: undefined }));
@@ -126,8 +161,6 @@ export default function Cadastro() {
       if (modoEdicao) {
         await editarProduto(id, dados);
         setSucesso(nomeProduto);
-        // Em edicao nao limpamos o form — o usuario pode querer continuar
-        // ajustando. O alerta de sucesso ja confirma a acao.
       } else {
         await adicionarProduto(dados);
         setSucesso(nomeProduto);
@@ -141,6 +174,36 @@ export default function Cadastro() {
       );
     } finally {
       setEnviando(false);
+    }
+  }
+
+  // "Excluir produto" no rodape do form -> decide se abre o modal ou
+  // mostra aviso de orfao. Tambem limpa qualquer aviso anterior.
+  function handleSolicitarExclusao() {
+    setSucesso(null);
+    setErroExclusao(null);
+    if (produtoEstaNaCompra) {
+      setBloqueadoOrfao(true);
+      return;
+    }
+    setBloqueadoOrfao(false);
+    setConfirmandoExclusao(true);
+  }
+
+  async function handleConfirmarExclusao() {
+    setExcluindo(true);
+    setErroExclusao(null);
+    try {
+      await removerProduto(id);
+      // Apos remover, volta para Listagem aba Catalogo (onde o usuario
+      // veio). O modal fecha sozinho porque o componente desmonta.
+      navigate("/listagem", { state: { aba: "catalogo" } });
+    } catch (err) {
+      setErroExclusao(
+        err?.message ||
+          "Não foi possível excluir o produto. Tente novamente em instantes.",
+      );
+      setExcluindo(false);
     }
   }
 
@@ -189,6 +252,32 @@ export default function Cadastro() {
               >
                 {erroEnvio}
               </AlertMessage>
+            )}
+            {bloqueadoOrfao && (
+              <section
+                className="csm-cadastro__bloqueio"
+                aria-label="Exclusão bloqueada"
+              >
+                <AlertMessage
+                  variant="alert"
+                  title="Não dá pra excluir esse produto agora"
+                  onClose={() => setBloqueadoOrfao(false)}
+                >
+                  Ele está na sua compra atual. Remova-o da compra antes de
+                  excluir do catálogo.
+                </AlertMessage>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    navigate("/listagem", { state: { aba: "compra" } })
+                  }
+                  iconRight={<Icon name="avancar" size={16} />}
+                >
+                  Ver minha compra
+                </Button>
+              </section>
             )}
             {sucesso && (
               <section
@@ -290,11 +379,85 @@ export default function Cadastro() {
                 {modoEdicao ? "Cancelar" : "Voltar para o início"}
               </Button>
             </div>
+
+            {modoEdicao && (
+              <div className="csm-cadastro__danger">
+                <p className="csm-cadastro__danger-title">Zona de risco</p>
+                <Button
+                  ref={excluirBotaoRef}
+                  type="button"
+                  variant="danger"
+                  size="md"
+                  fullWidth
+                  iconLeft={<Icon name="lixeira" size={20} />}
+                  onClick={handleSolicitarExclusao}
+                >
+                  Excluir produto
+                </Button>
+              </div>
+            )}
           </form>
         )}
       </main>
 
       <BottomNavigation />
+
+      {/* Modal de confirmacao da exclusao */}
+      {confirmandoExclusao && (
+        <div
+          className="csm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="csm-cadastro-excluir-title"
+        >
+          <div
+            className="csm-modal__backdrop"
+            onClick={() => !excluindo && setConfirmandoExclusao(false)}
+          />
+          <Card padding="lg" className="csm-modal__card">
+            <h2
+              className="csm-modal__title"
+              id="csm-cadastro-excluir-title"
+            >
+              Excluir “{form.nome}”?
+            </h2>
+            <p className="csm-modal__text">
+              Essa ação não pode ser desfeita. O produto vai sair do catálogo.
+            </p>
+            {erroExclusao && (
+              <AlertMessage
+                variant="error"
+                title="Não foi possível excluir"
+                onClose={() => setErroExclusao(null)}
+              >
+                {erroExclusao}
+              </AlertMessage>
+            )}
+            <div className="csm-modal__actions">
+              <Button
+                ref={confirmarExcluirBotaoRef}
+                variant="danger"
+                size="lg"
+                fullWidth
+                iconLeft={<Icon name="lixeira" size={20} />}
+                onClick={handleConfirmarExclusao}
+                disabled={excluindo}
+              >
+                {excluindo ? "Excluindo..." : "Sim, excluir"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="md"
+                fullWidth
+                onClick={() => setConfirmandoExclusao(false)}
+                disabled={excluindo}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

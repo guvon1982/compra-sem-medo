@@ -21,6 +21,9 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  /* ancora os modais (position: absolute; inset: 0) ao shell de 480px
+     no desktop — sem isso o modal escapa para a viewport inteira. */
+  position: relative;
 }
 
 @media (min-width: 768px) {

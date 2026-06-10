@@ -73,4 +73,12 @@ describe('App', () => {
       screen.getByRole('heading', { name: /editar produto/i, level: 1 }),
     ).toBeInTheDocument()
   })
+
+  it('nao mostra o botao "Excluir produto" em modo criar', () => {
+    renderEmRota('/cadastro')
+    // Zona de risco e exclusiva do modo edicao; em criar nem renderiza.
+    expect(
+      screen.queryByRole('button', { name: /excluir produto/i }),
+    ).not.toBeInTheDocument()
+  })
 })
