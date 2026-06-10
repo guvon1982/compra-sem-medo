@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 7 fechada via PRs #13, #14 e #15 em 2026-06-10). Proxima feature: `feature/produto-crud` — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (PR D1 do CRUD mergeado via PR #17 em 2026-06-10). Proxima feature: `feature/produto-remover` (PR D2) — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -58,22 +58,30 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Fix 1:** Home nao tinha `<h1>` (o Header usa Logo quando nao tem `title`). Adicionado `<h1 class="csm-sr-only">Compra Sem Medo</h1>` + utilitario `.csm-sr-only` em `base.css` (esconde visualmente mas mantem para leitor de tela).
   - **Fix 2:** modal de finalizar nao movia foco para dentro. Adicionado `useRef`+`useEffect` na Listagem: ao abrir, foco vai para "Sim, finalizar"; ao fechar (apos ter sido aberto), volta para "Finalizar compra". `confirmarJaAbriu` evita focar na 1a render. React 19 trata `ref` como prop normal — Button passa via `{...rest}`.
   - **Docs:** este CLAUDE.md atualizado fecha a Fase 7.
+- **PR #17 mergeado em `develop` (2026-06-10):** PR D1 do CRUD — edicao de produto via UI.
+  - **Rota nova `/cadastro/:id`:** aponta para a mesma pagina `<Cadastro />`; `useParams()` decide modo "criar" vs "editar". Espelha o padrao do professor (aula06 `Formulario.jsx`).
+  - **Pre-preenchimento via `produtoService.obter()`:** chamado no `useEffect` da pagina; flag `cancelado` evita atualizar estado se desmontar antes da resposta.
+  - **Estados explicitos:** `carregando` (EmptyState "Carregando produto..."), `naoEncontrado` (EmptyState com link "Ver catalogo" — cobre deep-link com id invalido) e `erroEnvio` (AlertMessage). UI inteira adapta texto: "Editar produto"/"Novo produto", "Salvar alteracoes"/"Salvar produto", mensagem de sucesso, e voltar/cancelar vai para `/listagem` (em vez de `/`).
+  - **`ProductItem` com prop opcional `onEdit`:** quando passada, renderiza text-link verde-escuro "Editar" debaixo de "categoria · unidade". Listagem passa `onEdit={() => navigate(\`/cadastro/${p.id}\`)}` na aba Catalogo.
+  - **Em modo edicao o form nao limpa apos salvar** (diferente de criar) — usuario pode continuar ajustando.
+  - **Testes:** novo teste em `App.test.jsx` cobre a rota `/cadastro/:id`. Total: 54 -> 55.
+  - **Validacao manual:** 10 passos confirmados (caminho feliz + cancelar + voltar + validacao + deep-link invalido + API offline + criar nao regrediu).
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-- **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas, e o `produtoService` ja tenha `atualizar`/`remover` prontos. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
+- **CRUD de produtos sem o D ainda** — editar via UI ja existe (PR #17), mas remover/excluir ainda nao. Reducer e service prontos; falta camada de UI + decisao de politica de orfao. Proximo PR: D2.
 - **Compra orfa quando a API esta offline** — identificada no teste manual do PR #13 (2026-06-10). Quando o `json-server` esta fora do ar, a tela `/listagem` aba "Minha compra" mostra "R$ 0,00 / Sua lista esta vazia" mesmo havendo itens persistidos no localStorage. Causa: a Listagem cruza `compraAtual` (IDs) com a lista `produtos` do CatalogoContext via `montarItem`; sem produtos carregados, `.filter(Boolean)` esvazia. **Dados nao sao perdidos** — assim que a API volta, a compra reaparece intacta. Possiveis correcoes: (a) cachear no localStorage um snapshot dos produtos referenciados, (b) mostrar item "Produto indisponivel" com aviso quando o catalogo faltar.
 - **Aviso de storage corrompido so na Home** — identificada no PR #14 (2026-06-10). Se o usuario entrar por deep link em `/listagem` com o storage corrompido, perde o aviso "Sua compra anterior nao pode ser recuperada". Cenario raro (rota canonica e a Home), mas vale resolver promovendo o aviso para um componente que monta em qualquer rota (talvez no proprio Provider ou no layout do App).
 
 ### Proxima fase
 
-**Fase 7 fechada (2026-06-10).** Proxima feature confirmada: **`feature/produto-crud`** — completar o CRUD de produtos via UI. Pre-requisitos ja existem (reducer com `editarProduto`/`removerProduto` testados, service com `atualizar`/`remover` prontos). Faltam: camada de UI + decisao de politica de referencia orfa. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
+**PR D1 do CRUD fechado (2026-06-10, PR #17).** Proxima feature: **`feature/produto-remover`** (PR D2) — completar o D do CRUD. Pre-requisitos prontos (reducer com `removerProduto` testado, service com `remover` pronto). Faltam: botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`. Decisoes do plano (logo abaixo) ja estao aprovadas.
 
-### Plano CRUD de produtos (recomendado, aguardando OK final do usuario)
+### Plano CRUD de produtos (aprovado em 2026-06-10)
 
-**Status (2026-06-10):** apresentado plano ao usuario ao fim da Fase 7. Decisoes ainda nao foram formalmente aprovadas — confirmar antes de codar. Quando retomar a sessao, perguntar se o usuario quer seguir com este plano ou rever algum ponto.
+**Status (2026-06-10):** plano aprovado pelo usuario. PR D1 mergeado via PR #17. PR D2 e o proximo a executar.
 
-**Decisoes propostas:**
+**Decisoes aprovadas:**
 
 1. **Onde fica a UI de editar/remover — usar a mesma pagina `Cadastro` para criar E editar**, espelhando o padrao do professor (aula06 `Formulario.jsx`).
    - `/cadastro` → cria produto novo (comportamento atual)
@@ -93,25 +101,23 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
    - Reset volta ao seed via `git restore db.json` (ja documentado em "Workflow do db.json").
    - Flag `isSeed` adicionaria complexidade contra "DRY com bom senso" sem ganho concreto.
 
-**Divisao em PRs sugerida:**
+**Divisao em PRs:**
 
-- **PR D1 — `feature/produto-editar`**: rota `/cadastro/:id`, pre-preenchimento via `obter()`, botao "Editar" no `ProductItem`, atualizacao via `editarProduto` do contexto + service. Testes do reducer ja existem (so completar com teste de integracao no novo fluxo se necessario).
-- **PR D2 — `feature/produto-remover`**: botao "Excluir" no formulario em modo edicao, modal de confirmacao, validacao de orfao (bloquear se em `compraAtual` com mensagem), `removerProduto` do contexto + service.
+- ✅ **PR D1 — `feature/produto-editar` (mergeado, PR #17, 2026-06-10):** rota `/cadastro/:id`, pre-preenchimento via `obter()`, botao "Editar" no `ProductItem`, atualizacao via `editarProduto` do contexto + service. Detalhes em "O que ja foi feito" acima.
+- ⏳ **PR D2 — `feature/produto-remover` (proximo):** botao "Excluir" no formulario em modo edicao, modal de confirmacao, validacao de orfao (bloquear se em `compraAtual` com mensagem), `removerProduto` do contexto + service.
 
 **O que ja esta pronto** (nao reabrir):
 - `compraReducer` com `editarProduto` e `removerProduto` testados (PR #6, Fase 4)
 - `produtoService` com `atualizar` e `remover` (PR #8, Fase 5)
 - `CatalogoContext` com as 3 acoes async ja chamando o service (PR #8)
+- Camada de UI de **editar** completa (PR #17)
 
-Falta so a camada de UI.
+Falta so a UI de **remover** (PR D2).
 
-### Roteiro restante apos Fase 7
+### Roteiro restante apos PR D1
 
-- **PR D1 — `feature/produto-editar` (proxima):** rota `/cadastro/:id`, botao "Editar" no ProductItem, pre-preenchimento do form.
-- **PR D2 — `feature/produto-remover` (depois):** botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`.
+- **PR D2 — `feature/produto-remover` (proxima):** botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`.
 - **Depois disso:** features de F1-F11 que ainda nao tiverem caido nas fases acima + resolver as 2 limitacoes pendentes (compra orfa sem API, aviso de storage so na Home).
-
-Detalhes em "Plano CRUD de produtos" logo acima. **Confirmar com o usuario antes de codar** — o plano e recomendacao, nao decisao formal aprovada ainda.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
