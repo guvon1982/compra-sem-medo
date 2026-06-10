@@ -224,7 +224,23 @@ docker compose exec app bash
 
 A partir da Fase 5 o `docker compose up -d` ja sobe **dois** servicos: `app` (Vite) e `api` (json-server na porta 3000, lendo o `db.json` da raiz). URL base esperada no `produtoService`: `http://localhost:3000/<entidade>`.
 
+> **Atencao — Vite NAO sobe sozinho.** O `docker compose up -d` deixa o container `app` rodando ocioso (so `tty:true`). Para a app responder em `localhost:5173`, voce precisa entrar no container e iniciar o Vite manualmente. Duas formas: `docker compose exec -T -d app npm run dev` (background) ou `docker compose exec -it app bash` e dentro do shell rodar `npm run dev`. Sintoma classico do esquecimento: navegador mostra `ERR_EMPTY_RESPONSE` em `localhost:5173`.
+
 **Sem Docker (fallback):** se o container nao estiver disponivel, os mesmos scripts npm rodam direto no Windows (`npm run dev`, etc.), exigindo Node 22+ local.
+
+### Troubleshooting do Docker
+
+**`api` falha com `ports are not available: bind: forbidden by access permissions` na porta 3000** (visto em 2026-06-10): o servico `winnat` do Windows reserva faixas dinamicas de porta para Hyper-V/WSL2 que podem incluir a 3000 mesmo sem aparecer em `netstat` ou em `netsh interface ipv4 show excludedportrange protocol=tcp`. Solucao:
+
+1. **PowerShell como Administrador** (botao direito > "Executar como administrador" — UAC obrigatorio).
+2. Rodar:
+   ```powershell
+   net stop winnat
+   net start winnat
+   ```
+3. Voltar para o terminal normal e rodar `docker compose up -d`. Agora o bind funciona.
+
+Se o usuario nao tiver acesso de admin, fallback: mudar a porta da API para 3001 (editar `docker-compose.yml` + `src/services/produtoService.js`).
 
 ### Workflow do `db.json` (importante)
 
