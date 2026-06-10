@@ -1,23 +1,26 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
-import { compraReducer, estadoInicialCompra } from "./compraReducer";
-import { lerDoStorage } from "../storage/useLocalStorage";
+import { createContext, useContext, useEffect, useMemo, useReducer, useState } from "react";
+import { compraReducer } from "./compraReducer";
+import { carregarEstadoInicial, CHAVE_STORAGE } from "./carregarEstadoInicial";
 
 /* ============================================================
    CompraContext — "caixa compartilhada" da compra atual, meta
    e historico de compras finalizadas. Consumido pelo hook
    `useCompra`.
-   ============================================================ */
 
-const CHAVE_STORAGE = "csm:estado-compra";
+   Carregamento resiliente (PRD risco "localStorage corromper
+   estado"): a logica de leitura/validacao vive em
+   `carregarEstadoInicial.js` (funcao pura, fora deste arquivo
+   por causa do Fast Refresh). Se o storage for invalido, ela
+   devolve { recuperadoComErro: true } e a UI avisa o usuario.
+   ============================================================ */
 
 const CompraContext = createContext(null);
 
 export function CompraProvider({ children }) {
-  const [state, dispatch] = useReducer(
-    compraReducer,
-    undefined,
-    () => lerDoStorage(CHAVE_STORAGE, estadoInicialCompra),
-  );
+  // useState com funcao garante que carregarEstadoInicial roda so na 1a render.
+  const [{ estado: estadoInit, recuperadoComErro }] = useState(carregarEstadoInicial);
+  const [state, dispatch] = useReducer(compraReducer, estadoInit);
+  const [erroStorage, setErroStorage] = useState(recuperadoComErro);
 
   useEffect(() => {
     try {
@@ -32,6 +35,8 @@ export function CompraProvider({ children }) {
       compraAtual: state.compraAtual,
       meta: state.meta,
       historicoCompras: state.historicoCompras,
+      erroStorage,
+      descartarErroStorage: () => setErroStorage(false),
       adicionarItem: (produtoId) =>
         dispatch({ type: "adicionarItem", payload: { produtoId } }),
       incrementar: (id) =>
@@ -48,7 +53,7 @@ export function CompraProvider({ children }) {
           payload: { total, itens, dataAtual: new Date() },
         }),
     }),
-    [state.compraAtual, state.meta, state.historicoCompras],
+    [state.compraAtual, state.meta, state.historicoCompras, erroStorage],
   );
 
   return (

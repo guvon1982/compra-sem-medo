@@ -33,6 +33,40 @@ export const estadoInicialCompra = {
   historicoCompras: HISTORICO,
 };
 
+/* ============================================================
+   validarEstadoCompra(obj) — diz se um objeto tem o shape
+   esperado pelo reducer. Usado pelo CompraContext ao carregar
+   o estado salvo no localStorage: se o objeto vier corrompido
+   (versao antiga, edicao manual, bug em fase futura), caimos
+   no estadoInicialCompra em vez de quebrar a UI.
+
+   Regras (PRD: "Validar formato ao carregar; se invalido,
+   resetar com aviso ao usuario."):
+   - precisa ser objeto
+   - compraAtual: array de { id: string, quantidade: number }
+   - meta: null ou number > 0
+   - historicoCompras: array (entradas validamos de leve, pra
+     nao perder o historico inteiro se um registro vier torto)
+   ============================================================ */
+export function validarEstadoCompra(obj) {
+  if (!obj || typeof obj !== "object") return false;
+
+  if (!Array.isArray(obj.compraAtual)) return false;
+  for (const item of obj.compraAtual) {
+    if (!item || typeof item.id !== "string") return false;
+    if (typeof item.quantidade !== "number" || item.quantidade <= 0) return false;
+  }
+
+  const metaValida =
+    obj.meta === null ||
+    (typeof obj.meta === "number" && obj.meta > 0);
+  if (!metaValida) return false;
+
+  if (!Array.isArray(obj.historicoCompras)) return false;
+
+  return true;
+}
+
 function formatarData(date) {
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",

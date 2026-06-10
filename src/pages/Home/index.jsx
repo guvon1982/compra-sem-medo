@@ -31,7 +31,7 @@ function totalDeItens(itens) {
 export default function Home() {
   const navigate = useNavigate();
   const { produtos, carregando, erro } = useCatalogo();
-  const { compraAtual, meta } = useCompra();
+  const { compraAtual, meta, erroStorage, descartarErroStorage } = useCompra();
 
   // Junta cada entrada da compra (id + quantidade) com os dados do produto.
   const itensDaCompra = compraAtual
@@ -61,6 +61,17 @@ export default function Home() {
               Acompanhe o total em tempo real enquanto coloca os produtos no carrinho.
             </p>
           </section>
+
+          {/* aviso de estado salvo corrompido (uma vez por sessao) */}
+          {erroStorage && (
+            <AlertMessage
+              variant="alert"
+              title="Sua compra anterior não pôde ser recuperada"
+              onClose={descartarErroStorage}
+            >
+              Os dados salvos estavam em um formato inválido, então começamos do zero. Seu histórico e meta também foram resetados.
+            </AlertMessage>
+          )}
 
           {/* erro de rede do catalogo, se houver */}
           {erro && (
