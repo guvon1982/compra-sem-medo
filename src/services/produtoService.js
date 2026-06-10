@@ -15,13 +15,18 @@
 
 const url = "http://localhost:3000/produtos";
 
-// Helper interno: monta a mensagem de erro de forma consistente.
-// Em erros de rede do fetch (ex.: API offline), o JavaScript gera um
-// TypeError sem `error.code` — entao incluimos o codigo so quando ele existe,
-// senao a mensagem ficava "Deu ruim! undefined-Failed to fetch".
+// Helper interno: monta uma mensagem de erro em portugues, curta e
+// orientada ao que o usuario pode fazer.
+//
+// O `fetch` joga um TypeError quando nao consegue alcancar o servidor
+// (API offline, sem rede, CORS bloqueado). Esse e o caso mais comum
+// no nosso projeto — entao tratamos ele com mensagem dedicada.
+// Qualquer outra coisa cai num fallback generico, ainda em portugues.
 function mensagemErro(error) {
-  const codigo = error.code ? `${error.code}-` : "";
-  return `Deu ruim! ${codigo}${error.message}`;
+  if (error instanceof TypeError) {
+    return "Sem conexao com a API. Verifique se o servidor esta no ar.";
+  }
+  return `Nao foi possivel completar a operacao: ${error.message}`;
 }
 
 // POST /

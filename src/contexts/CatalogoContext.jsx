@@ -68,9 +68,10 @@ export function CatalogoProvider({ children }) {
 
       removerProduto: async (id) => {
         const resp = await produtoService.remover({ id });
-        // json-server pode devolver {} ou o objeto removido. So consideramos
-        // erro se vier explicitamente a mensagem "Deu ruim!" do service.
-        if (resp?.message && /^Deu ruim!/.test(resp.message)) {
+        // json-server pode devolver {} ou o objeto removido no sucesso.
+        // O service so devolve `message` quando ha erro de rede/excecao,
+        // entao a presenca desse campo (sem id) ja indica falha.
+        if (resp?.message && !resp?.id) {
           throw new Error(resp.message);
         }
         dispatch({ type: "removerProduto", payload: { id } });
