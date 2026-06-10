@@ -158,14 +158,29 @@ docker compose exec app npm test             # watch
 docker compose exec app npm run test:run     # single run (CI)
 docker compose exec app npm run test:ui      # UI no navegador
 docker compose exec app npm run test:coverage
+docker compose exec app npm run api          # json-server manual em http://localhost:3000
 
 # Shell dentro do container
 docker compose exec app bash
 ```
 
-O json-server (a entrar em proxima feature) rodara na porta 3000, tambem dentro do container. URL base esperada nos services: `http://localhost:3000/<entidade>`.
+A partir da Fase 5 o `docker compose up -d` ja sobe **dois** servicos: `app` (Vite) e `api` (json-server na porta 3000, lendo o `db.json` da raiz). URL base esperada no `produtoService`: `http://localhost:3000/<entidade>`.
 
 **Sem Docker (fallback):** se o container nao estiver disponivel, os mesmos scripts npm rodam direto no Windows (`npm run dev`, etc.), exigindo Node 22+ local.
+
+### Workflow do `db.json` (importante)
+
+O `db.json` na raiz e **o seed** do catalogo de produtos (10 produtos versionados no git). Quando voce roda a app e cadastra/edita/remove produtos via UI, o **proprio `json-server` reescreve esse arquivo** — entao seu working tree fica "sujo" com os produtos de teste.
+
+**Antes de cada commit**, restaurar o seed:
+
+```bash
+git restore db.json
+```
+
+Isso descarta as mudancas locais e volta o arquivo para a versao que esta na branch (so os 10 produtos originais). Depois conferir com `git status` que so as alteracoes da feature ficam para commit.
+
+> Se algum dia o seed precisar mudar de verdade (ex.: trocar um produto, adicionar categoria nova), editar `db.json` manualmente e commitar a mudanca — nao deixar o servidor "decidir" o que entra no seed.
 
 ## Divisao de responsabilidades entre assistentes (combinada com o usuario)
 
