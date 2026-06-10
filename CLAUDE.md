@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 5 mergeada via PR #8 em 2026-06-09). Proxima feature a definir — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 6 mergeada via PR #11 em 2026-06-10). Proxima feature a definir — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -38,18 +38,22 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **CatalogoContext** ganha state `{ produtos, carregando, erro }` e acoes async. `useEffect` no mount chama `listar()` com flag de cancelamento; `adicionarProduto`/`editarProduto`/`removerProduto` chamam o service antes de despachar. `id` agora gerado pelo json-server (string aleatoria).
   - **UI states** de carregamento e erro em Home/Listagem aba Catalogo/Cadastro: alerta vermelho em erro de rede, empty state "Carregando catalogo..." durante load, botao "Salvando..." disabled durante envio.
   - **Testes:** subiu de 33 para 36 (`catalogoReducer.test.js` reescrito para novo state shape; `App.test.jsx` usa `vi.mock` do `produtoService` para nao bater na rede).
+- **PR #11 mergeado em `develop` (2026-06-10):** Fase 6 completa — persistencia local + UI da meta de gasto.
+  - **Persistencia (RN8):** `src/storage/useLocalStorage.js` cria hook `useLocalStorage` (substitui `useState` com sincronizacao automatica) e helper puro `lerDoStorage` (sem estado React, usado no lazy initializer do `useReducer`). `CompraContext` usa `lerDoStorage` para iniciar e `useEffect` para salvar a cada mudanca de estado. Chave: `csm:estado-compra` (persiste `compraAtual`, `meta` e `historicoCompras` juntos). Catalogo continua persistindo via json-server (db.json) — separacao mantida.
+  - **UI da meta (F6):** `BudgetProgress` ganha botao "Editar" ao lado de "Meta R$ X" quando ja existe meta (prop `onSetBudget`). Formulario inline na `Listagem` (aba Minha compra/Catalogo) com `Input` de `inputMode="decimal"`, validacao via `parsePreco` (rejeita NaN e valores <= 0 conforme RN5), botoes Confirmar/Sem meta/Cancelar. "Sem meta" so aparece quando ha meta a remover.
+  - **Validacao manual:** confirmados todos os cenarios — compra, meta e historico sobrevivem ao F5; definir/editar/remover meta funciona; validacao bloqueia entrada invalida; chave `csm:estado-compra` aparece no DevTools > Application > Local Storage.
+  - **Testes:** 36/36 continuam passando (jsdom simula localStorage vazio nos testes, entao o lazy initializer cai no `estadoInicialCompra` do mock — comportamento identico ao anterior).
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-- **Reload zera compra/meta/historico** — `compraAtual`, `meta` e `historicoCompras` ainda moram no `CompraContext` em memoria; F5 volta para o seed do mock (`COMPRA_INICIAL`, `META_INICIAL`, `HISTORICO`). Os **produtos** ja persistem (via json-server em `db.json`). Sera resolvido na **Fase 6** (persistencia em `localStorage`).
 - **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas, e o `produtoService` ja tenha `atualizar`/`remover` prontos. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
 
 ### Proxima fase
 
-A definir entre duas opcoes (decisao com o usuario):
+Decisao confirmada com o usuario (2026-06-10): seguir para **Fase 7 — polimento** antes do CRUD de produtos. Razao: Fase 7 e mais leve, fecha pontas que apareceram nos testes manuais (ex.: mensagem "Failed to fetch" pouco amigavel) e nao tem decisoes de produto em aberto, ao contrario do CRUD que ainda precisa resolver a politica de referencia orfa.
 
-- **Opcao A — Fase 6 (localStorage)**: persistencia local de `compraAtual`, `meta` e `historicoCompras` — segue a ordem do roadmap. Garante RN8 (reload nao perde dados). Detalhes em "Roteiro restante apos Fase 5" abaixo.
-- **Opcao B — `feature/produto-crud`**: implementar finalmente o CRUD de produtos via UI (a Opcao B deferida desde a Fase 4). Os pre-requisitos no service e no reducer ja existem; falta so a camada de UI + decisao de politica. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
+- **Fase 7 — polimento** (proxima): empty states reais, mensagens de erro de rede mais amigaveis (traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API onde ainda nao tem, acessibilidade revisada (foco visivel, aria-labels onde falta), ajustes finos de responsividade. Branch sugerida: `feature/polimento` ou dividir em PRs menores por tema.
+- **Depois da Fase 7 — `feature/produto-crud`**: implementar finalmente o CRUD de produtos via UI. Os pre-requisitos no service e no reducer ja existem; falta so a camada de UI + decisao de politica. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
 
 ### Decisoes pendentes — CRUD de produtos
 
@@ -62,11 +66,10 @@ Levantado durante o teste manual da Fase 4 (2026-06-05). Deferido ate apos a Fas
   - Sao editaveis os produtos do `mock.js` (seed inicial) ou so os cadastrados pelo usuario? Tem implicacao em RN1-RN10 (verificar).
 - **Reducer ja tem as acoes** `editarProduto` e `removerProduto` prontas e testadas — falta so a camada de UI + a decisao de politica acima.
 
-### Roteiro restante apos Fase 5
+### Roteiro restante apos Fase 6
 
-- **Fase 6:** persistencia local. `src/storage/useLocalStorage.js` (hook generico). `CompraContext` lê/escreve em `localStorage` automaticamente. Garantia de RN8 (reload nao perde dados).
-- **Fase 7:** polimento — empty states reais, mensagens de erro de rede mais amigaveis (ex.: traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API, acessibilidade revisada, ajustes finos de responsividade.
-- **Depois:** features de F1-F11 que ainda nao tiverem caido nas fases acima.
+- **Fase 7 (proxima):** polimento — empty states reais, mensagens de erro de rede mais amigaveis (ex.: traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API onde ainda falta, acessibilidade revisada, ajustes finos de responsividade.
+- **Depois:** `feature/produto-crud` (editar/remover via UI) + features de F1-F11 que ainda nao tiverem caido nas fases acima.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
