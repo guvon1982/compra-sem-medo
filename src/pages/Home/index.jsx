@@ -52,6 +52,10 @@ export default function Home() {
 
       <main className="csm-screen__main">
         <div className="csm-content">
+          {/* h1 acessivel — visualmente o logo no Header ja comunica a marca,
+              mas leitores de tela precisam de um cabecalho de nivel 1 */}
+          <h1 className="csm-sr-only">Compra Sem Medo</h1>
+
           {/* tagline da marca */}
           <section className="csm-home__intro">
             <p className="csm-home__tagline">

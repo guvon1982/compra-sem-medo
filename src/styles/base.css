@@ -46,6 +46,20 @@ a { color: inherit; text-decoration: none; }
 
 button { cursor: pointer; background: none; border: none; }
 
+/* Esconde visualmente mas mantem disponivel para leitores de tela.
+   Usado por ex. para titulos h1 que sao "narrados" pelo logo. */
+.csm-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Respeita quem prefere menos movimento */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

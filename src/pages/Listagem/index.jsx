@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router";
 import "./Listagem.css";
 import Header from "../../components/Header";
@@ -92,6 +92,22 @@ export default function Listagem() {
   const filtrados = produtos.filter((p) =>
     p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
   );
+
+  // Acessibilidade do modal: ao abrir, foco vai para o botao primario;
+  // ao fechar (depois de ter sido aberto), foco volta para o botao
+  // que abriu o modal. `confirmarJaAbriu` evita focar na primeira render.
+  const finalizarRef = useRef(null);
+  const confirmarBotaoRef = useRef(null);
+  const confirmarJaAbriu = useRef(false);
+
+  useEffect(() => {
+    if (confirmar) {
+      confirmarJaAbriu.current = true;
+      confirmarBotaoRef.current?.focus();
+    } else if (confirmarJaAbriu.current) {
+      finalizarRef.current?.focus();
+    }
+  }, [confirmar]);
 
   function handleAbrirMeta() {
     setValorMeta(meta != null ? String(meta).replace(".", ",") : "");
@@ -251,6 +267,7 @@ export default function Listagem() {
                 </Card>
 
                 <Button
+                  ref={finalizarRef}
                   variant="primary"
                   size="lg"
                   fullWidth
@@ -387,7 +404,7 @@ export default function Listagem() {
               para o histórico e a compra atual será zerada.
             </p>
             <div className="csm-modal__actions">
-              <Button variant="primary" size="lg" fullWidth onClick={confirmarFinalizar}>
+              <Button ref={confirmarBotaoRef} variant="primary" size="lg" fullWidth onClick={confirmarFinalizar}>
                 Sim, finalizar
               </Button>
               <Button variant="ghost" size="md" fullWidth onClick={() => setConfirmar(false)}>
