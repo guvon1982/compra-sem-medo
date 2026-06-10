@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 6 mergeada via PR #11 em 2026-06-10). Proxima feature a definir — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 7 fechada via PRs #13, #14 e #15 em 2026-06-10). Proxima feature: `feature/produto-crud` — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -43,17 +43,31 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **UI da meta (F6):** `BudgetProgress` ganha botao "Editar" ao lado de "Meta R$ X" quando ja existe meta (prop `onSetBudget`). Formulario inline na `Listagem` (aba Minha compra/Catalogo) com `Input` de `inputMode="decimal"`, validacao via `parsePreco` (rejeita NaN e valores <= 0 conforme RN5), botoes Confirmar/Sem meta/Cancelar. "Sem meta" so aparece quando ha meta a remover.
   - **Validacao manual:** confirmados todos os cenarios — compra, meta e historico sobrevivem ao F5; definir/editar/remover meta funciona; validacao bloqueia entrada invalida; chave `csm:estado-compra` aparece no DevTools > Application > Local Storage.
   - **Testes:** 36/36 continuam passando (jsdom simula localStorage vazio nos testes, entao o lazy initializer cai no `estadoInicialCompra` do mock — comportamento identico ao anterior).
+- **PR #13 mergeado em `develop` (2026-06-10):** Fase 7 PR A — mensagens de erro de rede amigaveis.
+  - **Service:** `produtoService.js` detecta `TypeError` (caso classico de fetch sem alcancar a API) e devolve **"Sem conexao com a API. Verifique se o servidor esta no ar."** Fallback generico tambem em portugues, sem "Deu ruim!".
+  - **Telas:** Home e Listagem (aba Catalogo) usam titulo "Nao foi possivel carregar o catalogo" e mostram a mensagem do service direta (eliminado o pedaco que repetia "Confira se o json-server esta no ar na porta 3000"). Cadastro com fallback mais natural.
+  - **Context:** `CatalogoContext.removerProduto` checava `^Deu ruim!` via regex — trocado por `message && !id`, equivalente e robusto a mudancas de string.
+  - **Testes:** novo `produtoService.test.js` com 5 testes que mockam `fetch` global e cobrem TypeError, erro generico e sucesso. Total: 36 -> 41.
+- **PR #14 mergeado em `develop` (2026-06-10):** Fase 7 PR B — validacao do estado salvo + aviso ao usuario (PRD risco "localStorage corromper estado").
+  - **Validacao:** `compraReducer.js` exporta `validarEstadoCompra(obj)` que confere shape minimo (`compraAtual` array de `{id:string, quantidade:number>0}`, `meta` null|number>0, `historicoCompras` array).
+  - **Carregamento resiliente:** funcao pura `carregarEstadoInicial` em `src/contexts/carregarEstadoInicial.js` (arquivo separado por causa do Fast Refresh: react-refresh/only-export-components nao deixa misturar export de componente com export de funcao). Distingue 3 casos: chave inexistente -> seed sem aviso; JSON quebrado -> seed COM aviso; shape invalido -> seed COM aviso.
+  - **Bug encontrado no proprio teste manual:** primeira versao usava `lerDoStorage(chave, null)` que devolvia `null` tanto para "chave inexistente" quanto para "JSON quebrado" — entao o caminho de erro nao era detectado. Reescrita para ler `localStorage.getItem` direto e separar `null` de `JSON.parse` falhando.
+  - **UI:** `CompraContext` expoe `erroStorage` + `descartarErroStorage`. Home mostra `AlertMessage` variant `alert` com botao de fechar quando `erroStorage` for verdadeiro.
+  - **Testes:** 8 testes da validacao em `compraReducer.test.js` + 5 testes do `carregarEstadoInicial` em `carregarEstadoInicial.test.js` (mocka localStorage com `beforeEach clear`). Total: 41 -> 54.
+- **PR #15 mergeado em `develop` (2026-06-10):** Fase 7 PR C — fechamento + a11y minimo. Apos auditoria curta, descartamos o PR C dedicado de acessibilidade porque o Design System ja cobriu `:focus-visible` global, `aria-label` em botoes so-icone, landmarks (`<main>`, `<header>`, `<nav>`), `role="dialog" + aria-modal` no modal e `role="tab" + aria-selected` nas abas.
+  - **Fix 1:** Home nao tinha `<h1>` (o Header usa Logo quando nao tem `title`). Adicionado `<h1 class="csm-sr-only">Compra Sem Medo</h1>` + utilitario `.csm-sr-only` em `base.css` (esconde visualmente mas mantem para leitor de tela).
+  - **Fix 2:** modal de finalizar nao movia foco para dentro. Adicionado `useRef`+`useEffect` na Listagem: ao abrir, foco vai para "Sim, finalizar"; ao fechar (apos ter sido aberto), volta para "Finalizar compra". `confirmarJaAbriu` evita focar na 1a render. React 19 trata `ref` como prop normal — Button passa via `{...rest}`.
+  - **Docs:** este CLAUDE.md atualizado fecha a Fase 7.
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
 - **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas, e o `produtoService` ja tenha `atualizar`/`remover` prontos. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
+- **Compra orfa quando a API esta offline** — identificada no teste manual do PR #13 (2026-06-10). Quando o `json-server` esta fora do ar, a tela `/listagem` aba "Minha compra" mostra "R$ 0,00 / Sua lista esta vazia" mesmo havendo itens persistidos no localStorage. Causa: a Listagem cruza `compraAtual` (IDs) com a lista `produtos` do CatalogoContext via `montarItem`; sem produtos carregados, `.filter(Boolean)` esvazia. **Dados nao sao perdidos** — assim que a API volta, a compra reaparece intacta. Possiveis correcoes: (a) cachear no localStorage um snapshot dos produtos referenciados, (b) mostrar item "Produto indisponivel" com aviso quando o catalogo faltar.
+- **Aviso de storage corrompido so na Home** — identificada no PR #14 (2026-06-10). Se o usuario entrar por deep link em `/listagem` com o storage corrompido, perde o aviso "Sua compra anterior nao pode ser recuperada". Cenario raro (rota canonica e a Home), mas vale resolver promovendo o aviso para um componente que monta em qualquer rota (talvez no proprio Provider ou no layout do App).
 
 ### Proxima fase
 
-Decisao confirmada com o usuario (2026-06-10): seguir para **Fase 7 — polimento** antes do CRUD de produtos. Razao: Fase 7 e mais leve, fecha pontas que apareceram nos testes manuais (ex.: mensagem "Failed to fetch" pouco amigavel) e nao tem decisoes de produto em aberto, ao contrario do CRUD que ainda precisa resolver a politica de referencia orfa.
-
-- **Fase 7 — polimento** (proxima): empty states reais, mensagens de erro de rede mais amigaveis (traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API onde ainda nao tem, acessibilidade revisada (foco visivel, aria-labels onde falta), ajustes finos de responsividade. Branch sugerida: `feature/polimento` ou dividir em PRs menores por tema.
-- **Depois da Fase 7 — `feature/produto-crud`**: implementar finalmente o CRUD de produtos via UI. Os pre-requisitos no service e no reducer ja existem; falta so a camada de UI + decisao de politica. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
+**Fase 7 fechada (2026-06-10).** Proxima feature confirmada: **`feature/produto-crud`** — completar o CRUD de produtos via UI. Pre-requisitos ja existem (reducer com `editarProduto`/`removerProduto` testados, service com `atualizar`/`remover` prontos). Faltam: camada de UI + decisao de politica de referencia orfa. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
 
 ### Decisoes pendentes — CRUD de produtos
 
@@ -66,10 +80,10 @@ Levantado durante o teste manual da Fase 4 (2026-06-05). Deferido ate apos a Fas
   - Sao editaveis os produtos do `mock.js` (seed inicial) ou so os cadastrados pelo usuario? Tem implicacao em RN1-RN10 (verificar).
 - **Reducer ja tem as acoes** `editarProduto` e `removerProduto` prontas e testadas — falta so a camada de UI + a decisao de politica acima.
 
-### Roteiro restante apos Fase 6
+### Roteiro restante apos Fase 7
 
-- **Fase 7 (proxima):** polimento — empty states reais, mensagens de erro de rede mais amigaveis (ex.: traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API onde ainda falta, acessibilidade revisada, ajustes finos de responsividade.
-- **Depois:** `feature/produto-crud` (editar/remover via UI) + features de F1-F11 que ainda nao tiverem caido nas fases acima.
+- **`feature/produto-crud` (proxima):** UI de editar/remover produtos no catalogo. Decisao de politica de referencia orfa em aberto (ver "Decisoes pendentes — CRUD de produtos").
+- **Depois:** features de F1-F11 que ainda nao tiverem caido nas fases acima + resolver as 2 limitacoes pendentes (compra orfa sem API, aviso de storage so na Home).
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
