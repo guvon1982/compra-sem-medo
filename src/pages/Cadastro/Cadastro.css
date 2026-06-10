@@ -15,3 +15,27 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+
+/* mesma estrutura para o aviso de bloqueio de exclusao + link "Ver minha compra" */
+.csm-cadastro__bloqueio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* zona de risco: separa visualmente as acoes seguras da exclusao */
+.csm-cadastro__danger {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.csm-cadastro__danger-title {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
