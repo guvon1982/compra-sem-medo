@@ -69,21 +69,49 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Fase 7 fechada (2026-06-10).** Proxima feature confirmada: **`feature/produto-crud`** — completar o CRUD de produtos via UI. Pre-requisitos ja existem (reducer com `editarProduto`/`removerProduto` testados, service com `atualizar`/`remover` prontos). Faltam: camada de UI + decisao de politica de referencia orfa. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
 
-### Decisoes pendentes — CRUD de produtos
+### Plano CRUD de produtos (recomendado, aguardando OK final do usuario)
 
-Levantado durante o teste manual da Fase 4 (2026-06-05). Deferido ate apos a Fase 5 (mergeada em 2026-06-09). Agora e candidato direto a proxima feature em **branch propria** (sugestao: `feature/produto-crud`). Pontos a resolver antes de codar:
+**Status (2026-06-10):** apresentado plano ao usuario ao fim da Fase 7. Decisoes ainda nao foram formalmente aprovadas — confirmar antes de codar. Quando retomar a sessao, perguntar se o usuario quer seguir com este plano ou rever algum ponto.
 
-- **Confirmar escopo:** ler `docs/PRD.md` e checar se editar/remover produto esta nas F1-F11. Se nao estiver, decidir com o usuario se promove para MVP ou deixa pos-MVP.
-- **Decisoes de design ainda em aberto:**
-  - Onde mora a UI de editar/remover? Dentro do `ProductItem` na aba Catalogo (icones de acao)? Tela nova `/produto/:id`?
-  - Politica de **referencia orfa**: se o usuario remover um produto que esta na `compraAtual` ou no `historicoCompras`, o que acontece? Opcoes: (a) bloquear remocao se houver referencia; (b) remover do catalogo mas manter no historico como "produto descontinuado"; (c) cascata (remove tambem dos lugares onde aparece — perigoso para historico).
-  - Sao editaveis os produtos do `mock.js` (seed inicial) ou so os cadastrados pelo usuario? Tem implicacao em RN1-RN10 (verificar).
-- **Reducer ja tem as acoes** `editarProduto` e `removerProduto` prontas e testadas — falta so a camada de UI + a decisao de politica acima.
+**Decisoes propostas:**
+
+1. **Onde fica a UI de editar/remover — usar a mesma pagina `Cadastro` para criar E editar**, espelhando o padrao do professor (aula06 `Formulario.jsx`).
+   - `/cadastro` → cria produto novo (comportamento atual)
+   - `/cadastro/:id` → edita produto existente (pre-preenche via `obter()`)
+   - Como o usuario chega na edicao: botao text-link pequeno **"Editar"** em cada `ProductItem` da aba Catalogo (nao polui o layout no mobile).
+   - Botao **"Excluir"** mora no rodape do formulario em modo edicao, variante danger, com modal de confirmacao. A propria navegacao ate a tela ja serve como "confirmacao por friccao".
+   - Por que essa opcao e nao icones inline no `ProductItem`: formulario tem 4 campos (nome, categoria, unidade, preco) — nao da pra editar inline confortavelmente no mobile; reusar componente reduz codigo; casa com o padrao do professor.
+
+2. **Politica de produto orfao — bloquear remocao se estiver na `compraAtual`.**
+   - Historico nao e problema: olhando `compraReducer.js`, `historicoCompras` guarda so agregados `{id, data, total, itens (count), meta}` — **nao armazena IDs de produto**. Remover do catalogo nao afeta historico nenhum. RN10 (historico imutavel) respeitada sem esforco.
+   - `compraAtual` e o unico risco: se o usuario tentar remover um produto que ele acabou de adicionar a compra, bloqueamos com mensagem clara: *"Este produto esta na sua compra atual. Remova-o da compra antes de excluir do catalogo."*
+   - Cascata foi descartada (anti-padrao: deletar silenciosamente itens do usuario).
+   - "Manter como descontinuado" foi descartado (complica modelo com flag extra sem ganho concreto).
+
+3. **Produtos do seed sao editaveis sem distincao** (sim, todos editaveis/removiveis).
+   - O `db.json` ja e editavel — `json-server` reescreve a cada PUT/DELETE.
+   - Reset volta ao seed via `git restore db.json` (ja documentado em "Workflow do db.json").
+   - Flag `isSeed` adicionaria complexidade contra "DRY com bom senso" sem ganho concreto.
+
+**Divisao em PRs sugerida:**
+
+- **PR D1 — `feature/produto-editar`**: rota `/cadastro/:id`, pre-preenchimento via `obter()`, botao "Editar" no `ProductItem`, atualizacao via `editarProduto` do contexto + service. Testes do reducer ja existem (so completar com teste de integracao no novo fluxo se necessario).
+- **PR D2 — `feature/produto-remover`**: botao "Excluir" no formulario em modo edicao, modal de confirmacao, validacao de orfao (bloquear se em `compraAtual` com mensagem), `removerProduto` do contexto + service.
+
+**O que ja esta pronto** (nao reabrir):
+- `compraReducer` com `editarProduto` e `removerProduto` testados (PR #6, Fase 4)
+- `produtoService` com `atualizar` e `remover` (PR #8, Fase 5)
+- `CatalogoContext` com as 3 acoes async ja chamando o service (PR #8)
+
+Falta so a camada de UI.
 
 ### Roteiro restante apos Fase 7
 
-- **`feature/produto-crud` (proxima):** UI de editar/remover produtos no catalogo. Decisao de politica de referencia orfa em aberto (ver "Decisoes pendentes — CRUD de produtos").
-- **Depois:** features de F1-F11 que ainda nao tiverem caido nas fases acima + resolver as 2 limitacoes pendentes (compra orfa sem API, aviso de storage so na Home).
+- **PR D1 — `feature/produto-editar` (proxima):** rota `/cadastro/:id`, botao "Editar" no ProductItem, pre-preenchimento do form.
+- **PR D2 — `feature/produto-remover` (depois):** botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`.
+- **Depois disso:** features de F1-F11 que ainda nao tiverem caido nas fases acima + resolver as 2 limitacoes pendentes (compra orfa sem API, aviso de storage so na Home).
+
+Detalhes em "Plano CRUD de produtos" logo acima. **Confirmar com o usuario antes de codar** — o plano e recomendacao, nao decisao formal aprovada ainda.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
