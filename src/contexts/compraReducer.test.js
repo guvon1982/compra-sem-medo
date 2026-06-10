@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { compraReducer, estadoInicialCompra } from "./compraReducer";
+import {
+  compraReducer,
+  estadoInicialCompra,
+  validarEstadoCompra,
+} from "./compraReducer";
 
 /* ============================================================
    Smoke tests do reducer da compra.
@@ -102,5 +106,104 @@ describe("compraReducer", () => {
       type: "inexistente",
     });
     expect(state).toBe(estadoInicialCompra);
+  });
+});
+
+describe("validarEstadoCompra", () => {
+  it("aceita o proprio estadoInicialCompra (seed valido)", () => {
+    expect(validarEstadoCompra(estadoInicialCompra)).toBe(true);
+  });
+
+  it("aceita estado minimo valido (compra vazia, sem meta, sem historico)", () => {
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: null,
+        historicoCompras: [],
+      }),
+    ).toBe(true);
+  });
+
+  it("rejeita null e undefined", () => {
+    expect(validarEstadoCompra(null)).toBe(false);
+    expect(validarEstadoCompra(undefined)).toBe(false);
+  });
+
+  it("rejeita objeto sem campos obrigatorios", () => {
+    expect(validarEstadoCompra({})).toBe(false);
+    expect(validarEstadoCompra({ compraAtual: [] })).toBe(false);
+    expect(
+      validarEstadoCompra({ compraAtual: [], meta: null }),
+    ).toBe(false);
+  });
+
+  it("rejeita quando compraAtual nao e array", () => {
+    expect(
+      validarEstadoCompra({
+        compraAtual: "p1",
+        meta: null,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+  });
+
+  it("rejeita item da compra com shape errado", () => {
+    expect(
+      validarEstadoCompra({
+        compraAtual: [{ id: "p1" }], // falta quantidade
+        meta: null,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+
+    expect(
+      validarEstadoCompra({
+        compraAtual: [{ id: 123, quantidade: 1 }], // id nao e string
+        meta: null,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+
+    expect(
+      validarEstadoCompra({
+        compraAtual: [{ id: "p1", quantidade: 0 }], // quantidade <= 0
+        meta: null,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+  });
+
+  it("rejeita meta invalida (string, zero, negativa)", () => {
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: "100",
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: 0,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: -50,
+        historicoCompras: [],
+      }),
+    ).toBe(false);
+  });
+
+  it("rejeita historicoCompras que nao e array", () => {
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: null,
+        historicoCompras: {},
+      }),
+    ).toBe(false);
   });
 });
