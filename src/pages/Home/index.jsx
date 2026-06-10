@@ -64,8 +64,8 @@ export default function Home() {
 
           {/* erro de rede do catalogo, se houver */}
           {erro && (
-            <AlertMessage variant="error" title="Falha ao carregar o catálogo">
-              {erro} Confira se o `json-server` está no ar (porta 3000).
+            <AlertMessage variant="error" title="Não foi possível carregar o catálogo">
+              {erro}
             </AlertMessage>
           )}
 

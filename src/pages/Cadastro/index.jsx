@@ -72,7 +72,7 @@ export default function Cadastro() {
       setSucesso(null);
       setErroEnvio(
         err?.message ||
-          "Nao consegui salvar o produto. Verifique se a API esta no ar.",
+          "Não foi possível salvar o produto. Tente novamente em instantes.",
       );
     } finally {
       setEnviando(false);
