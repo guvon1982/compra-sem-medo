@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (PR D1 do CRUD mergeado via PR #17 em 2026-06-10). Proxima feature: `feature/produto-remover` (PR D2) — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -66,20 +66,33 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Em modo edicao o form nao limpa apos salvar** (diferente de criar) — usuario pode continuar ajustando.
   - **Testes:** novo teste em `App.test.jsx` cobre a rota `/cadastro/:id`. Total: 54 -> 55.
   - **Validacao manual:** 10 passos confirmados (caminho feliz + cancelar + voltar + validacao + deep-link invalido + API offline + criar nao regrediu).
+- **PR #19 mergeado em `develop` (2026-06-10):** PR D2 do CRUD — exclusao de produto via UI. **CRUD do catalogo agora completo (C, R, U, D).**
+  - **Botao "Excluir produto" em "Zona de risco"** no rodape do form em modo edicao. Usa `Button` `variant="danger"` que ja existia no DS (laranja-alerta — paleta nao tem vermelho de proposito). Separado visualmente com border-top + label uppercase pequena.
+  - **Politica de orfao (bloqueio inline):** antes do modal, checa `compraAtual.some(e => e.id === id)`. Se positivo, mostra `AlertMessage` variant=alert no topo do form com link "Ver minha compra" (`navigate("/listagem", { state: { aba: "compra" } })`). Modal nem abre. Historico nao e afetado porque guarda so agregados sem IDs.
+  - **Modal de confirmacao** so abre quando exclusao e viavel. Foco no botao destrutivo ao abrir, volta ao botao "Excluir produto" ao fechar — mesmo padrao do modal de "Finalizar compra" do PR #15.
+  - **Erro de rede:** se `removerProduto` lanca, modal nao fecha; `AlertMessage` variant=error aparece dentro do proprio modal com mensagem do service. Apos sucesso, navega para `/listagem` aba Catalogo.
+  - **Fix de bug pre-existente:** `#root` ganha `position: relative`. Sem isso, modais com `position: absolute; inset: 0` resolviam contra a viewport e escapavam do shell de 480px no desktop. Beneficia tambem o modal de "Finalizar compra" da Listagem (tinha o mesmo problema desde o PR #4).
+  - **Testes:** 1 novo em `App.test.jsx` garantindo que "Zona de risco" nao aparece em modo criar. Total: 55 -> 56.
+  - **Validacao manual:** 15 passos confirmados (caminho feliz + bloqueio inline + link "Ver minha compra" + modal cancelar/backdrop/API offline + criar/editar nao regrediram + modal respeita 480px no desktop).
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-- **CRUD de produtos sem o D ainda** — editar via UI ja existe (PR #17), mas remover/excluir ainda nao. Reducer e service prontos; falta camada de UI + decisao de politica de orfao. Proximo PR: D2.
 - **Compra orfa quando a API esta offline** — identificada no teste manual do PR #13 (2026-06-10). Quando o `json-server` esta fora do ar, a tela `/listagem` aba "Minha compra" mostra "R$ 0,00 / Sua lista esta vazia" mesmo havendo itens persistidos no localStorage. Causa: a Listagem cruza `compraAtual` (IDs) com a lista `produtos` do CatalogoContext via `montarItem`; sem produtos carregados, `.filter(Boolean)` esvazia. **Dados nao sao perdidos** — assim que a API volta, a compra reaparece intacta. Possiveis correcoes: (a) cachear no localStorage um snapshot dos produtos referenciados, (b) mostrar item "Produto indisponivel" com aviso quando o catalogo faltar.
 - **Aviso de storage corrompido so na Home** — identificada no PR #14 (2026-06-10). Se o usuario entrar por deep link em `/listagem` com o storage corrompido, perde o aviso "Sua compra anterior nao pode ser recuperada". Cenario raro (rota canonica e a Home), mas vale resolver promovendo o aviso para um componente que monta em qualquer rota (talvez no proprio Provider ou no layout do App).
 
 ### Proxima fase
 
-**PR D1 do CRUD fechado (2026-06-10, PR #17).** Proxima feature: **`feature/produto-remover`** (PR D2) — completar o D do CRUD. Pre-requisitos prontos (reducer com `removerProduto` testado, service com `remover` pronto). Faltam: botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`. Decisoes do plano (logo abaixo) ja estao aprovadas.
+**CRUD do catalogo fechado (2026-06-10, PRs #17 + #19).** Sem proxima feature decidida ainda. Opcoes para conversar com o usuario:
 
-### Plano CRUD de produtos (aprovado em 2026-06-10)
+- **Resolver as 2 limitacoes conhecidas** (compra orfa sem API, aviso de storage so na Home). Sao bugs pequenos com correcoes pontuais.
+- **Features de F1-F11 do PRD que ainda nao foram cobertas explicitamente** — checar `docs/PRD.md` para identificar se alguma ficou pendente.
+- **Stretch goals (S1-S?)** — caso o MVP esteja completo e haja tempo restante.
 
-**Status (2026-06-10):** plano aprovado pelo usuario. PR D1 mergeado via PR #17. PR D2 e o proximo a executar.
+**Confirmar com o usuario antes de codar.**
+
+### Plano CRUD de produtos (executado em 2026-06-10)
+
+**Status:** ✅ **CRUD completo.** PR D1 mergeado via PR #17 (editar). PR D2 mergeado via PR #19 (excluir). Decisoes do plano foram aprovadas e seguidas. Esta secao fica como historico — pode ser removida em uma futura limpeza do CLAUDE.md.
 
 **Decisoes aprovadas:**
 
@@ -101,23 +114,17 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
    - Reset volta ao seed via `git restore db.json` (ja documentado em "Workflow do db.json").
    - Flag `isSeed` adicionaria complexidade contra "DRY com bom senso" sem ganho concreto.
 
-**Divisao em PRs:**
+**Divisao em PRs (ambos mergeados):**
 
-- ✅ **PR D1 — `feature/produto-editar` (mergeado, PR #17, 2026-06-10):** rota `/cadastro/:id`, pre-preenchimento via `obter()`, botao "Editar" no `ProductItem`, atualizacao via `editarProduto` do contexto + service. Detalhes em "O que ja foi feito" acima.
-- ⏳ **PR D2 — `feature/produto-remover` (proximo):** botao "Excluir" no formulario em modo edicao, modal de confirmacao, validacao de orfao (bloquear se em `compraAtual` com mensagem), `removerProduto` do contexto + service.
+- ✅ **PR D1 — `feature/produto-editar` (PR #17, 2026-06-10):** rota `/cadastro/:id`, pre-preenchimento via `obter()`, botao "Editar" no `ProductItem`, atualizacao via `editarProduto` do contexto + service.
+- ✅ **PR D2 — `feature/produto-remover` (PR #19, 2026-06-10):** botao "Excluir" no formulario em modo edicao + modal de confirmacao + bloqueio inline de orfao em `compraAtual` + fix do modal escapando 480px no desktop.
 
-**O que ja esta pronto** (nao reabrir):
-- `compraReducer` com `editarProduto` e `removerProduto` testados (PR #6, Fase 4)
-- `produtoService` com `atualizar` e `remover` (PR #8, Fase 5)
-- `CatalogoContext` com as 3 acoes async ja chamando o service (PR #8)
-- Camada de UI de **editar** completa (PR #17)
+### Roteiro restante
 
-Falta so a UI de **remover** (PR D2).
-
-### Roteiro restante apos PR D1
-
-- **PR D2 — `feature/produto-remover` (proxima):** botao "Excluir" no form em modo edicao + modal de confirmacao + validacao de orfao em `compraAtual`.
-- **Depois disso:** features de F1-F11 que ainda nao tiverem caido nas fases acima + resolver as 2 limitacoes pendentes (compra orfa sem API, aviso de storage so na Home).
+- **Possiveis proximos passos** (a confirmar com o usuario):
+  - Resolver as 2 limitacoes conhecidas pendentes (compra orfa sem API, aviso de storage so na Home).
+  - Features de F1-F11 do `docs/PRD.md` que ainda nao tenham sido cobertas.
+  - Stretch goals.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
