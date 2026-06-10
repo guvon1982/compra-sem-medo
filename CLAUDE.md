@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 4 mergeada via PR #6 em 2026-06-05). Proxima feature a definir — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (Fase 5 mergeada via PR #8 em 2026-06-09). Proxima feature a definir — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -31,22 +31,29 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **UX:** apos salvar produto, alerta de sucesso ganha botao "Ver no catalogo" que abre Listagem direto na aba Catalogo via `location.state.aba` do `react-router`.
   - **Fix bonus:** `parsePreco` extraida para `src/utils/currency.js` com heuristica que aceita `9,90`, `9.90`, `1.234,56`, `1234.56` etc. — resolve bug onde `9.90` virava 990.
   - **Testes:** subiu de 3 para 33 (13 dos reducers + 17 de `currency` + 3 smoke do App).
+- **PR #8 mergeado em `develop` (2026-06-09):** Fase 5 completa — catalogo via API REST e migracao de modelo para pt-BR.
+  - **Infra json-server:** `db.json` na raiz com seed de 10 produtos; `json-server` v1.0.0-beta.15 como devDependency; servico `api` separado no `docker-compose.yml` rodando em `localhost:3000`. Script `npm run api` para uso manual.
+  - **Service:** `src/services/produtoService.js` segue padrao do professor (aula06) — 5 funcoes `criar/obter/listar/atualizar/remover` com `try/catch` que devolve `{ message: "Deu ruim! ..." }` em erro. Helper interno `mensagemErro` evita o `undefined-` quando o fetch lanca `TypeError` sem `error.code`.
+  - **Modelo migrado para pt-BR:** `name`→`nome`, `category`→`categoria`, `unit`→`unidade`, `price`→`preco`. Entrada da compra: `quantity`→`quantidade`. Refator atinge `mock.js`, reducers + testes, componentes (`ProductItem`, `ShoppingListItem`) e as 3 paginas. Coerencia fim a fim em portugues.
+  - **CatalogoContext** ganha state `{ produtos, carregando, erro }` e acoes async. `useEffect` no mount chama `listar()` com flag de cancelamento; `adicionarProduto`/`editarProduto`/`removerProduto` chamam o service antes de despachar. `id` agora gerado pelo json-server (string aleatoria).
+  - **UI states** de carregamento e erro em Home/Listagem aba Catalogo/Cadastro: alerta vermelho em erro de rede, empty state "Carregando catalogo..." durante load, botao "Salvando..." disabled durante envio.
+  - **Testes:** subiu de 33 para 36 (`catalogoReducer.test.js` reescrito para novo state shape; `App.test.jsx` usa `vi.mock` do `produtoService` para nao bater na rede).
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-- **Reload zera o estado** — recarregar a pagina volta tudo para o seed do mock (`PRODUTOS`, `COMPRA_INICIAL`, `META_INICIAL`, `HISTORICO`). Sera resolvido na **Fase 6** (persistencia em `localStorage`).
-- **Catalogo vem do mock** — `src/data/mock.js` ainda e a fonte do catalogo de produtos. Sera resolvido na **Fase 5** (json-server + `src/services/produtoService.js`).
-- **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
+- **Reload zera compra/meta/historico** — `compraAtual`, `meta` e `historicoCompras` ainda moram no `CompraContext` em memoria; F5 volta para o seed do mock (`COMPRA_INICIAL`, `META_INICIAL`, `HISTORICO`). Os **produtos** ja persistem (via json-server em `db.json`). Sera resolvido na **Fase 6** (persistencia em `localStorage`).
+- **CRUD de produtos so tem o C** — editar e remover ainda nao tem UI, embora as acoes `editarProduto`/`removerProduto` do reducer ja existam e estejam testadas, e o `produtoService` ja tenha `atualizar`/`remover` prontos. Ver "Decisoes pendentes — CRUD de produtos" abaixo.
 
-### Proxima fase — Fase 5 (json-server)
+### Proxima fase
 
-Decisao tomada em 2026-06-09: seguir a ordem do roadmap (Opcao A). Detalhes em "Roteiro restante apos Fase 4" abaixo.
+A definir entre duas opcoes (decisao com o usuario):
 
-A Opcao B (CRUD de produtos via UI) foi **explicitamente deferida** para **depois da Fase 5** — ver "Decisoes pendentes — CRUD de produtos" logo abaixo.
+- **Opcao A — Fase 6 (localStorage)**: persistencia local de `compraAtual`, `meta` e `historicoCompras` — segue a ordem do roadmap. Garante RN8 (reload nao perde dados). Detalhes em "Roteiro restante apos Fase 5" abaixo.
+- **Opcao B — `feature/produto-crud`**: implementar finalmente o CRUD de produtos via UI (a Opcao B deferida desde a Fase 4). Os pre-requisitos no service e no reducer ja existem; falta so a camada de UI + decisao de politica. Pontos em "Decisoes pendentes — CRUD de produtos" logo abaixo.
 
 ### Decisoes pendentes — CRUD de produtos
 
-Levantado durante o teste manual da Fase 4 (2026-06-05). Decidido em 2026-06-09 que sera tratado em **branch propria apos o merge da Fase 5** (sugestao: `feature/produto-crud`). Pontos a resolver antes de codar:
+Levantado durante o teste manual da Fase 4 (2026-06-05). Deferido ate apos a Fase 5 (mergeada em 2026-06-09). Agora e candidato direto a proxima feature em **branch propria** (sugestao: `feature/produto-crud`). Pontos a resolver antes de codar:
 
 - **Confirmar escopo:** ler `docs/PRD.md` e checar se editar/remover produto esta nas F1-F11. Se nao estiver, decidir com o usuario se promove para MVP ou deixa pos-MVP.
 - **Decisoes de design ainda em aberto:**
@@ -55,11 +62,10 @@ Levantado durante o teste manual da Fase 4 (2026-06-05). Decidido em 2026-06-09 
   - Sao editaveis os produtos do `mock.js` (seed inicial) ou so os cadastrados pelo usuario? Tem implicacao em RN1-RN10 (verificar).
 - **Reducer ja tem as acoes** `editarProduto` e `removerProduto` prontas e testadas — falta so a camada de UI + a decisao de politica acima.
 
-### Roteiro restante apos Fase 4
+### Roteiro restante apos Fase 5
 
-- **Fase 5:** json-server para o catalogo de produtos. Services em `src/services/produtoService.js` (`criar/obter/listar/atualizar/remover` encapsulando `fetch`). `db.json` na raiz versionado. Container Docker ja expoe a porta 3000. Catalogo passa a vir da API; cadastro POSTa para a API.
 - **Fase 6:** persistencia local. `src/storage/useLocalStorage.js` (hook generico). `CompraContext` lê/escreve em `localStorage` automaticamente. Garantia de RN8 (reload nao perde dados).
-- **Fase 7:** polimento — empty states reais, mensagens de erro de rede, loading states no consumo da API, acessibilidade revisada, ajustes finos de responsividade.
+- **Fase 7:** polimento — empty states reais, mensagens de erro de rede mais amigaveis (ex.: traduzir `Failed to fetch` para "Sem conexao com a API"), loading states no consumo da API, acessibilidade revisada, ajustes finos de responsividade.
 - **Depois:** features de F1-F11 que ainda nao tiverem caido nas fases acima.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
