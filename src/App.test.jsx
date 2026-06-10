@@ -64,4 +64,13 @@ describe('App', () => {
       screen.getByRole('heading', { name: /^compra$/i, level: 1 }),
     ).toBeInTheDocument()
   })
+
+  it('renderiza Cadastro em modo edicao na rota "/cadastro/:id"', () => {
+    renderEmRota('/cadastro/p1')
+    // O titulo "Editar produto" aparece imediatamente no Header,
+    // antes do produtoService.obter() responder (estado carregando).
+    expect(
+      screen.getByRole('heading', { name: /editar produto/i, level: 1 }),
+    ).toBeInTheDocument()
+  })
 })
