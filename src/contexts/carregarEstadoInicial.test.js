@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { carregarEstadoInicial, CHAVE_STORAGE } from "./CompraContext";
+import { carregarEstadoInicial, CHAVE_STORAGE } from "./carregarEstadoInicial";
 import { estadoInicialCompra } from "./compraReducer";
 
 /* ============================================================

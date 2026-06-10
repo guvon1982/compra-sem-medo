@@ -1,9 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useState } from "react";
-import {
-  compraReducer,
-  estadoInicialCompra,
-  validarEstadoCompra,
-} from "./compraReducer";
+import { compraReducer } from "./compraReducer";
+import { carregarEstadoInicial, CHAVE_STORAGE } from "./carregarEstadoInicial";
 
 /* ============================================================
    CompraContext — "caixa compartilhada" da compra atual, meta
@@ -11,47 +8,11 @@ import {
    `useCompra`.
 
    Carregamento resiliente (PRD risco "localStorage corromper
-   estado"): tenta ler o estado salvo, valida o shape via
-   validarEstadoCompra; se for invalido, cai no estadoInicial
-   e expoe `erroStorage = true` para que a UI possa avisar.
+   estado"): a logica de leitura/validacao vive em
+   `carregarEstadoInicial.js` (funcao pura, fora deste arquivo
+   por causa do Fast Refresh). Se o storage for invalido, ela
+   devolve { recuperadoComErro: true } e a UI avisa o usuario.
    ============================================================ */
-
-export const CHAVE_STORAGE = "csm:estado-compra";
-
-// Funcao pura: decide o que usar como estado inicial olhando o
-// localStorage. Roda uma unica vez via lazy initializer do useState.
-//
-// Distingue tres cenarios:
-//   1. chave nao existe -> primeira visita, usa o seed, sem aviso
-//   2. chave existe mas JSON quebrado -> usa o seed, aviso
-//   3. JSON valido mas shape errado -> usa o seed, aviso
-// Os casos 2 e 3 sao os que o PRD pede para "resetar com aviso".
-export function carregarEstadoInicial() {
-  let raw;
-  try {
-    raw = localStorage.getItem(CHAVE_STORAGE);
-  } catch {
-    // localStorage indisponivel (modo privado, etc.) — trata como primeira visita
-    return { estado: estadoInicialCompra, recuperadoComErro: false };
-  }
-
-  if (raw === null) {
-    return { estado: estadoInicialCompra, recuperadoComErro: false };
-  }
-
-  let parseado;
-  try {
-    parseado = JSON.parse(raw);
-  } catch {
-    return { estado: estadoInicialCompra, recuperadoComErro: true };
-  }
-
-  if (validarEstadoCompra(parseado)) {
-    return { estado: parseado, recuperadoComErro: false };
-  }
-
-  return { estado: estadoInicialCompra, recuperadoComErro: true };
-}
 
 const CompraContext = createContext(null);
 
