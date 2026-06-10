@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useReducer } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import { compraReducer, estadoInicialCompra } from "./compraReducer";
+import { lerDoStorage } from "../storage/useLocalStorage";
 
 /* ============================================================
    CompraContext — "caixa compartilhada" da compra atual, meta
@@ -7,10 +8,24 @@ import { compraReducer, estadoInicialCompra } from "./compraReducer";
    `useCompra`.
    ============================================================ */
 
+const CHAVE_STORAGE = "csm:estado-compra";
+
 const CompraContext = createContext(null);
 
 export function CompraProvider({ children }) {
-  const [state, dispatch] = useReducer(compraReducer, estadoInicialCompra);
+  const [state, dispatch] = useReducer(
+    compraReducer,
+    undefined,
+    () => lerDoStorage(CHAVE_STORAGE, estadoInicialCompra),
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(state));
+    } catch {
+      // silencia erros de modo privado ou storage cheio
+    }
+  }, [state]);
 
   const value = useMemo(
     () => ({
