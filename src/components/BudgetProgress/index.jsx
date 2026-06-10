@@ -39,7 +39,19 @@ export default function BudgetProgress({
             <span className="csm-budget__fill" style={{ width: `${pct}%` }} />
           </div>
           <div className="csm-budget__row">
-            <span className="csm-budget__metavalue">Meta {formatBRL(budget)}</span>
+            <div className="csm-budget__metaleft">
+              <span className="csm-budget__metavalue">Meta {formatBRL(budget)}</span>
+              {onSetBudget && (
+                <button
+                  type="button"
+                  className="csm-budget__editmeta"
+                  onClick={onSetBudget}
+                  aria-label="Editar meta de gasto"
+                >
+                  Editar
+                </button>
+              )}
+            </div>
             <span className="csm-budget__status">
               {over
                 ? `Passou ${formatBRL(diff)}`

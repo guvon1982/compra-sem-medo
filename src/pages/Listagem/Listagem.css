@@ -41,6 +41,21 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+/* formulário inline de definição/edição da meta */
+.csm-meta-form {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.csm-meta-form__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 /* lista com divisórias finas entre itens */
 .csm-divided > li + li {
   border-top: 1px solid var(--color-border);

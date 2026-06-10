@@ -13,7 +13,7 @@ import AlertMessage from "../../components/AlertMessage";
 import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
 import { CATEGORIAS, ICONE_CATEGORIA } from "../../data/mock";
-import { formatBRL } from "../../utils/currency";
+import { formatBRL, parsePreco } from "../../utils/currency";
 import { useCatalogo } from "../../contexts/CatalogoContext";
 import { useCompra } from "../../contexts/CompraContext";
 
@@ -57,6 +57,7 @@ export default function Listagem() {
     incrementar,
     decrementar,
     removerItem,
+    definirMeta,
     finalizarCompra,
   } = useCompra();
 
@@ -71,6 +72,9 @@ export default function Listagem() {
   const [busca, setBusca] = useState("");
   const [confirmar, setConfirmar] = useState(false);
   const [finalizada, setFinalizada] = useState(null);
+  const [editandoMeta, setEditandoMeta] = useState(false);
+  const [valorMeta, setValorMeta] = useState("");
+  const [erroMeta, setErroMeta] = useState(null);
 
   // Itens da compra atual com nome/preco/unidade resolvidos do catalogo.
   const list = useMemo(
@@ -88,6 +92,28 @@ export default function Listagem() {
   const filtrados = produtos.filter((p) =>
     p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
   );
+
+  function handleAbrirMeta() {
+    setValorMeta(meta != null ? String(meta).replace(".", ",") : "");
+    setErroMeta(null);
+    setEditandoMeta(true);
+  }
+
+  function handleSalvarMeta(e) {
+    e.preventDefault();
+    const valor = parsePreco(valorMeta);
+    if (Number.isNaN(valor) || valor <= 0) {
+      setErroMeta("Informe um valor positivo. Ex: 300,00");
+      return;
+    }
+    definirMeta(valor);
+    setEditandoMeta(false);
+  }
+
+  function handleRemoverMeta() {
+    definirMeta(null);
+    setEditandoMeta(false);
+  }
 
   function confirmarFinalizar() {
     setConfirmar(false);
@@ -133,7 +159,39 @@ export default function Listagem() {
         {/* heroi fixo (compra/catalogo) */}
         {tab !== "historico" && (
           <div className="csm-listagem__hero">
-            <BudgetProgress total={total} budget={budget} itemCount={itemCount} />
+            <BudgetProgress
+              total={total}
+              budget={budget}
+              itemCount={itemCount}
+              onSetBudget={handleAbrirMeta}
+            />
+            {editandoMeta && (
+              <form className="csm-meta-form" onSubmit={handleSalvarMeta}>
+                <Input
+                  label="Meta de gasto (R$)"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Ex: 300,00"
+                  value={valorMeta}
+                  onChange={(e) => { setValorMeta(e.target.value); setErroMeta(null); }}
+                  error={erroMeta}
+                  autoFocus
+                />
+                <div className="csm-meta-form__actions">
+                  <Button variant="primary" size="sm" type="submit">
+                    Confirmar
+                  </Button>
+                  {meta != null && (
+                    <Button variant="ghost" size="sm" type="button" onClick={handleRemoverMeta}>
+                      Sem meta
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" type="button" onClick={() => setEditandoMeta(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         )}
 
