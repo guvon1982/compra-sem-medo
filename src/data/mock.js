@@ -20,23 +20,23 @@ export const ICONE_CATEGORIA = {
 };
 
 export const PRODUTOS = [
-  { id: "p1", name: "Arroz Tio João 5kg", category: "Alimentos", unit: "5kg", price: 29.9 },
-  { id: "p2", name: "Feijão Camil 1kg", category: "Alimentos", unit: "1kg", price: 8.49 },
-  { id: "p3", name: "Café Pilão 500g", category: "Bebidas", unit: "500g", price: 14.9 },
-  { id: "p4", name: "Leite Itambé 1L", category: "Bebidas", unit: "1L", price: 5.29 },
-  { id: "p5", name: "Açúcar União 1kg", category: "Alimentos", unit: "1kg", price: 4.99 },
-  { id: "p6", name: "Macarrão Barilla 500g", category: "Alimentos", unit: "500g", price: 6.79 },
-  { id: "p7", name: "Óleo Soya 900ml", category: "Alimentos", unit: "900ml", price: 7.49 },
-  { id: "p8", name: "Sabão em pó OMO 1,6kg", category: "Limpeza", unit: "1,6kg", price: 22.9 },
-  { id: "p9", name: "Detergente Ypê 500ml", category: "Limpeza", unit: "500ml", price: 2.79 },
-  { id: "p10", name: "Papel higiênico Neve 12 rolos", category: "Higiene", unit: "12 rolos", price: 18.9 },
+  { id: "p1", nome: "Arroz Tio João 5kg", categoria: "Alimentos", unidade: "5kg", preco: 29.9 },
+  { id: "p2", nome: "Feijão Camil 1kg", categoria: "Alimentos", unidade: "1kg", preco: 8.49 },
+  { id: "p3", nome: "Café Pilão 500g", categoria: "Bebidas", unidade: "500g", preco: 14.9 },
+  { id: "p4", nome: "Leite Itambé 1L", categoria: "Bebidas", unidade: "1L", preco: 5.29 },
+  { id: "p5", nome: "Açúcar União 1kg", categoria: "Alimentos", unidade: "1kg", preco: 4.99 },
+  { id: "p6", nome: "Macarrão Barilla 500g", categoria: "Alimentos", unidade: "500g", preco: 6.79 },
+  { id: "p7", nome: "Óleo Soya 900ml", categoria: "Alimentos", unidade: "900ml", preco: 7.49 },
+  { id: "p8", nome: "Sabão em pó OMO 1,6kg", categoria: "Limpeza", unidade: "1,6kg", preco: 22.9 },
+  { id: "p9", nome: "Detergente Ypê 500ml", categoria: "Limpeza", unidade: "500ml", preco: 2.79 },
+  { id: "p10", nome: "Papel higiênico Neve 12 rolos", categoria: "Higiene", unidade: "12 rolos", preco: 18.9 },
 ];
 
 /* compra atual inicial (já com alguns itens p/ demonstrar o herói) */
 export const COMPRA_INICIAL = [
-  { id: "p1", quantity: 1 },
-  { id: "p4", quantity: 2 },
-  { id: "p6", quantity: 1 },
+  { id: "p1", quantidade: 1 },
+  { id: "p4", quantidade: 2 },
+  { id: "p6", quantidade: 1 },
 ];
 
 export const META_INICIAL = 60;

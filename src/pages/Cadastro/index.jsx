@@ -27,6 +27,8 @@ export default function Cadastro() {
   const [form, setForm] = useState({ nome: "", categoria: "", unidade: "", preco: "" });
   const [errors, setErrors] = useState({});
   const [sucesso, setSucesso] = useState(null);
+  const [erroEnvio, setErroEnvio] = useState(null);
+  const [enviando, setEnviando] = useState(false);
 
   const set = (campo) => (e) => {
     setForm((f) => ({ ...f, [campo]: e.target.value }));
@@ -44,23 +46,37 @@ export default function Cadastro() {
     return er;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const er = validar();
     setErrors(er);
     if (Object.keys(er).length > 0) {
       setSucesso(null);
+      setErroEnvio(null);
       return;
     }
-    // Persiste no catalogo via Context — Listagem ja vai enxergar este produto.
-    adicionarProduto({
-      name: form.nome.trim(),
-      category: form.categoria,
-      unit: form.unidade,
-      price: parsePreco(form.preco),
-    });
-    setSucesso(form.nome.trim());
-    setForm({ nome: "", categoria: "", unidade: "", preco: "" });
+    // Persiste no catalogo via Context — chamada async para o json-server.
+    const nomeProduto = form.nome.trim();
+    setEnviando(true);
+    setErroEnvio(null);
+    try {
+      await adicionarProduto({
+        nome: nomeProduto,
+        categoria: form.categoria,
+        unidade: form.unidade,
+        preco: parsePreco(form.preco),
+      });
+      setSucesso(nomeProduto);
+      setForm({ nome: "", categoria: "", unidade: "", preco: "" });
+    } catch (err) {
+      setSucesso(null);
+      setErroEnvio(
+        err?.message ||
+          "Nao consegui salvar o produto. Verifique se a API esta no ar.",
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -69,6 +85,15 @@ export default function Cadastro() {
 
       <main className="csm-screen__main">
         <form className="csm-content" onSubmit={handleSubmit} noValidate>
+          {erroEnvio && (
+            <AlertMessage
+              variant="error"
+              title="Não foi possível salvar"
+              onClose={() => setErroEnvio(null)}
+            >
+              {erroEnvio}
+            </AlertMessage>
+          )}
           {sucesso && (
             <section
               className="csm-cadastro__sucesso"
@@ -145,8 +170,9 @@ export default function Cadastro() {
               size="lg"
               fullWidth
               iconLeft={<Icon name="check" size={20} />}
+              disabled={enviando}
             >
-              Salvar produto
+              {enviando ? "Salvando..." : "Salvar produto"}
             </Button>
             <Button
               type="button"

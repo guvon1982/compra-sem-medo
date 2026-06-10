@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "api": "json-server db.json --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
@@ -34,6 +35,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
+    "json-server": "^1.0.0-beta.15",
     "vite": "^8.0.12",
     "vitest": "^4.1.8"
   }

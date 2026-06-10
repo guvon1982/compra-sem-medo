@@ -39,7 +39,7 @@ const TABS = [
 function montarItem(entrada, catalogo) {
   const produto = catalogo.find((p) => p.id === entrada.id);
   if (!produto) return null;
-  return { ...produto, quantity: entrada.quantity };
+  return { ...produto, quantidade: entrada.quantidade };
 }
 
 // chaves validas de aba — usado para sanitizar o que vem na navegacao
@@ -48,7 +48,7 @@ const TAB_KEYS = TABS.map((t) => t.key);
 export default function Listagem() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { produtos } = useCatalogo();
+  const { produtos, carregando, erro } = useCatalogo();
   const {
     compraAtual,
     meta,
@@ -78,15 +78,15 @@ export default function Listagem() {
     [compraAtual, produtos],
   );
 
-  const total = list.reduce((s, i) => s + i.price * i.quantity, 0);
-  const itemCount = list.reduce((s, i) => s + i.quantity, 0);
+  const total = list.reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const itemCount = list.reduce((s, i) => s + i.quantidade, 0);
   const budget = meta;
   const over = budget != null && total > budget;
 
   const addedIds = new Set(list.map((i) => i.id));
 
   const filtrados = produtos.filter((p) =>
-    p.name.toLowerCase().includes(busca.trim().toLowerCase()),
+    p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
   );
 
   function confirmarFinalizar() {
@@ -179,10 +179,10 @@ export default function Listagem() {
                     {list.map((item) => (
                       <li key={item.id}>
                         <ShoppingListItem
-                          name={item.name}
-                          unitPrice={item.price}
-                          quantity={item.quantity}
-                          unit={item.unit}
+                          nome={item.nome}
+                          precoUnitario={item.preco}
+                          quantidade={item.quantidade}
+                          unidade={item.unidade}
                           onIncrement={() => incrementar(item.id)}
                           onDecrement={() => decrementar(item.id)}
                           onRemove={() => removerItem(item.id)}
@@ -209,6 +209,12 @@ export default function Listagem() {
         {/* ---- ABA: CATALOGO ---- */}
         {tab === "catalogo" && (
           <div className="csm-content">
+            {erro && (
+              <AlertMessage variant="error" title="Falha ao carregar o catálogo">
+                {erro} Confira se o `json-server` está no ar (porta 3000).
+              </AlertMessage>
+            )}
+
             <Input
               label="Buscar produto"
               placeholder="Buscar no catálogo..."
@@ -217,7 +223,13 @@ export default function Listagem() {
               prefix={<Icon name="busca" size={18} />}
             />
 
-            {filtrados.length === 0 ? (
+            {carregando ? (
+              <EmptyState
+                icon="carrinho"
+                title="Carregando catálogo..."
+                description="Buscando os produtos no servidor."
+              />
+            ) : filtrados.length === 0 ? (
               <EmptyState
                 icon="busca"
                 title="Nada encontrado"
@@ -234,7 +246,7 @@ export default function Listagem() {
               />
             ) : (
               CATEGORIAS.map((cat) => {
-                const doGrupo = filtrados.filter((p) => p.category === cat);
+                const doGrupo = filtrados.filter((p) => p.categoria === cat);
                 if (doGrupo.length === 0) return null;
                 return (
                   <section key={cat} aria-label={cat}>
@@ -244,12 +256,12 @@ export default function Listagem() {
                         {doGrupo.map((p) => (
                           <li key={p.id}>
                             <ProductItem
-                              name={p.name}
-                              category={p.category}
-                              unit={p.unit}
-                              price={p.price}
+                              nome={p.nome}
+                              categoria={p.categoria}
+                              unidade={p.unidade}
+                              preco={p.preco}
                               added={addedIds.has(p.id)}
-                              icon={<Icon name={ICONE_CATEGORIA[p.category] || "caixa"} size={20} />}
+                              icon={<Icon name={ICONE_CATEGORIA[p.categoria] || "caixa"} size={20} />}
                               onAdd={() => adicionarItem(p.id)}
                             />
                           </li>
