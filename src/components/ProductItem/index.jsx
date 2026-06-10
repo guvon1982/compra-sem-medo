@@ -16,6 +16,7 @@ export default function ProductItem({
   icon = null,
   added = false,
   onAdd,
+  onEdit,
 }) {
   return (
     <article className="csm-product">
@@ -26,6 +27,16 @@ export default function ProductItem({
         <p className="csm-product__meta">
           {categoria} · {unidade}
         </p>
+        {onEdit && (
+          <button
+            type="button"
+            className="csm-product__edit"
+            onClick={onEdit}
+            aria-label={`Editar ${nome}`}
+          >
+            Editar
+          </button>
+        )}
       </div>
 
       <div className="csm-product__right">

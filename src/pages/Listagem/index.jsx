@@ -338,6 +338,7 @@ export default function Listagem() {
                               added={addedIds.has(p.id)}
                               icon={<Icon name={ICONE_CATEGORIA[p.categoria] || "caixa"} size={20} />}
                               onAdd={() => adicionarItem(p.id)}
+                              onEdit={() => navigate(`/cadastro/${p.id}`)}
                             />
                           </li>
                         ))}
