@@ -8,7 +8,7 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
 **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 (publico). Colunas: `Backlog` → `To do` → `In progress` → `In review` → `Done`. Cards de feature linkam para os PRs reais. Criado em 2026-06-11 com 12 PRs retroativos em `Done` + 2 limitacoes conhecidas em `Backlog` + 1 placeholder em `To do`.
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10; Kanban registrado via PR #22 em 2026-06-11). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -75,6 +75,12 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Fix de bug pre-existente:** `#root` ganha `position: relative`. Sem isso, modais com `position: absolute; inset: 0` resolviam contra a viewport e escapavam do shell de 480px no desktop. Beneficia tambem o modal de "Finalizar compra" da Listagem (tinha o mesmo problema desde o PR #4).
   - **Testes:** 1 novo em `App.test.jsx` garantindo que "Zona de risco" nao aparece em modo criar. Total: 55 -> 56.
   - **Validacao manual:** 15 passos confirmados (caminho feliz + bloqueio inline + link "Ver minha compra" + modal cancelar/backdrop/API offline + criar/editar nao regrediram + modal respeita 480px no desktop).
+- **PR #22 mergeado em `develop` (2026-06-11):** docs do Kanban + enunciado oficial versionado. Codigo nao mudou.
+  - **CLAUDE.md** ganha 3 entradas: link do board publico em https://github.com/users/guvon1982/projects/2, workflow Backlog → To do → In progress → In review → Done na "Stack travada", e referencia ao board em "Documentos relevantes".
+  - **`docs/Especificacao_do_Projeto_Final.md`** versionado como referencia permanente do enunciado oficial do professor (estava untracked).
+  - **Kanban populado retroativamente:** 12 PRs de feature/infra em Done (1, 2, 3, 4, 6, 8, 11, 13, 14, 15, 17, 19), 2 limitacoes conhecidas em Backlog, 1 placeholder em To do. Views configuradas: **Kanban** (Board layout) e **Tabela** (Table layout). Board e publico.
+  - **Primeiro card a percorrer o workflow novo:** o proprio PR #22 (criado em Backlog → linkado em In review → movido para Done apos merge).
+- **PR #23 mergeado em `develop` (2026-06-12):** docs dos comandos do Kanban. Codigo nao mudou. Adiciona subsecao "Comandos do Kanban (GitHub Projects)" em "Comandos do projeto" com IDs do board travados e receitas de CLI para nao re-descobrir via API em cada sessao nova. Documenta o workflow obrigatorio por feature passo a passo.
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
@@ -228,6 +234,61 @@ A partir da Fase 5 o `docker compose up -d` ja sobe **dois** servicos: `app` (Vi
 > **Atencao — Vite NAO sobe sozinho.** O `docker compose up -d` deixa o container `app` rodando ocioso (so `tty:true`). Para a app responder em `localhost:5173`, voce precisa entrar no container e iniciar o Vite manualmente. Duas formas: `docker compose exec -T -d app npm run dev` (background) ou `docker compose exec -it app bash` e dentro do shell rodar `npm run dev`. Sintoma classico do esquecimento: navegador mostra `ERR_EMPTY_RESPONSE` em `localhost:5173`.
 
 **Sem Docker (fallback):** se o container nao estiver disponivel, os mesmos scripts npm rodam direto no Windows (`npm run dev`, etc.), exigindo Node 22+ local.
+
+### Comandos do Kanban (GitHub Projects)
+
+Board publico em https://github.com/users/guvon1982/projects/2.
+
+**Pre-requisito:** o token do `gh` precisa ter o escopo `project`. Se faltar, rodar uma vez `gh auth refresh -s project` (abre o navegador para autorizar).
+
+**IDs travados do board** (gravados em 2026-06-11, ja confirmados estaveis):
+
+```text
+Project number: 2
+Owner:          guvon1982
+Project ID:     PVT_kwHOC-k1r84BabMk
+Status field:   PVTSSF_lAHOC-k1r84BabMkzhVS65s
+
+Option IDs (Status):
+  Backlog:     96a238e4
+  To do:       6f6b2ac5
+  In progress: 8a5775ca
+  In review:   00a2c5de
+  Done:        faeafac7
+```
+
+**Receitas** (rodar do host, fora do container):
+
+```bash
+# Listar tudo no board (estado atual; output e grande, usar --limit ou jq)
+gh project item-list 2 --owner guvon1982 --format json --limit 30
+
+# Ver os campos do board (se precisar redescobrir IDs por algum motivo)
+gh project field-list 2 --owner guvon1982 --format json
+
+# Linkar um PR existente como card no board (retorna o item ID no JSON)
+gh project item-add 2 --owner guvon1982 --url https://github.com/guvon1982/compra-sem-medo/pull/<num> --format json
+
+# Criar um draft (ideia, limitacao, roadmap — sem PR ainda)
+gh project item-create 2 --owner guvon1982 --title "Titulo curto" --body "Descricao." --format json
+
+# Mover um card para outra coluna (precisa do item ID retornado pelos comandos acima)
+gh project item-edit --id <item-id> --field-id PVTSSF_lAHOC-k1r84BabMkzhVS65s --project-id PVT_kwHOC-k1r84BabMk --single-select-option-id <option-id>
+
+# Alterar config do board (publico/privado, descricao) via GraphQL
+gh api graphql -f query='mutation { updateProjectV2(input: { projectId: "PVT_kwHOC-k1r84BabMk", public: true }) { projectV2 { public } } }'
+```
+
+### Workflow obrigatorio por feature
+
+Toda feature nova (code OU docs significativas) deve ter um card que percorre todas as 5 colunas:
+
+1. **Antes de criar a branch** — criar draft no `Backlog` (`item-create`) ou mover card existente de `Backlog` para `To do`.
+2. **Ao comecar a codar** — mover o card para `In progress`.
+3. **Ao abrir o PR** — linkar o PR ao card (`item-add` com a URL do PR) e mover para `In review`. Se ja existia draft, criar um item linkado ao PR e remover/aposentar o draft.
+4. **Apos merge em `develop`** — mover o card para `Done`.
+
+Hot-fixes documentais minusculas (ex.: corrigir typo no README) podem passar direto pelo Kanban sem card. Use bom senso: se valeu PR separado, vale card separado.
 
 ### Troubleshooting do Docker
 
