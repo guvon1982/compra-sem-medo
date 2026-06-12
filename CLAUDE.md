@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** por `guvon1982`.
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
+**Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 (publico). Colunas: `Backlog` → `To do` → `In progress` → `In review` → `Done`. Cards de feature linkam para os PRs reais. Criado em 2026-06-11 com 12 PRs retroativos em `Done` + 2 limitacoes conhecidas em `Backlog` + 1 placeholder em `To do`.
 **Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
@@ -140,7 +141,7 @@ Todas as decisoes abaixo ja estao validadas com o usuario e/ou alinhadas ao exer
 - **Fetch API** (sem axios)
 - **json-server** como API REST para o catalogo de produtos
 - **localStorage** para compra atual, meta e historico de compras finalizadas
-- **GitHub Projects** (Kanban) — exigencia do enunciado
+- **GitHub Projects** (Kanban) — exigencia do enunciado. Board ativo em https://github.com/users/guvon1982/projects/2. **Workflow obrigatorio:** toda feature nova deve ter um card que percorre `Backlog` → `To do` (no inicio da feature) → `In progress` (quando comecar a codar) → `In review` (quando o PR for aberto) → `Done` (apos merge em `develop`). Cards de feature linkam o PR real via `gh project item-add`. Cards de roadmap/limitacao ficam como drafts.
 
 ## Padroes de codigo (alinhados ao exercicio do professor)
 
@@ -286,10 +287,12 @@ Componentes oficiais do app: **Button, Input, Card, ProductItem, ShoppingListIte
 ## Documentos relevantes
 
 - `docs/PRD.md` — escopo, regras de negocio, criterios de sucesso, restricoes.
+- `docs/Especificacao_do_Projeto_Final.md` — enunciado oficial do professor (requisitos funcionais, criterios de avaliacao).
 - `docs/design-system-reference.md` — tokens e regras visuais aprovadas.
 - `docs/CompraSemMedo_DesignSystem_Aprovacao.png` — referencia visual aprovada.
 - `RESUMO_PARA_CLAUDE_CODE.md` — historico de contexto inicial (anterior ao PRD); util para entender o porque das decisoes.
 - `docs/SDD.md` — ainda nao escrito; sera o proximo documento (arquitetura, estrutura de pastas, modelo de dados, contratos de API).
+- **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 — board publico que reflete o fluxo de desenvolvimento. Ver "Stack travada" para o workflow obrigatorio.
 
 ## Referencia externa
 
