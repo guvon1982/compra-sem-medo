@@ -8,7 +8,7 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
 **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 (publico). Colunas: `Backlog` → `To do` → `In progress` → `In review` → `Done`. Cards de feature linkam para os PRs reais. Criado em 2026-06-11 com 12 PRs retroativos em `Done` + 2 limitacoes conhecidas em `Backlog` + 1 placeholder em `To do`.
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10; Kanban registrado via PR #22 em 2026-06-11; **F11 detalhes do historico completo via PR #24 em 2026-06-20 — MVP F1-F11 do PRD fechado**). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa. **Estado atual (2026-06-21):** MVP F1-F11 do PRD fechado, **4 de 4 limitacoes conhecidas resolvidas** via PRs de polimento (#26, #27), **2 de 4 stretch goals do PRD entregues** (S2 editar produto no PR #17, S4 excluir compra do historico no PR #28). Proximo passo natural: release `develop` -> `main` (a `main` continua representando "versao pronta para uso" — ver workflow do CLAUDE global). Stretch goals S1 (historico de precos por produto) e S3 (filtrar/buscar produto, parcialmente coberto pela busca textual ja existente) ficam como roadmap pos-entrega.
 
 ### O que ja foi feito
 
@@ -89,21 +89,37 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Novo padrao de a11y `data-focus-injetado` (ver "Padroes de codigo" abaixo):** introduzido para resolver bug onde `.focus()` chamado de dentro de handler de clique de mouse nao mostrava o anel azul (`:focus-visible` so dispara em interacao de teclado). Aplicado no detalhe do historico e tambem retroativamente no modal de finalizar compra para consistencia.
   - **Testes:** 56 -> 57 (teste de `finalizarCompra` reescrito para novo shape; novo teste de retrocompat do validador aceitando ambos formatos).
   - **Validacao manual:** 20 passos confirmados — caminho feliz com nova compra, retrocompat com compra antiga, estados de borda (historico vazio, sem meta), nao regressoes do CRUD.
+- **PR #25 mergeado em `develop` (2026-06-20):** docs do PR #24. Registra F11 completo, adiciona 2 novas limitacoes conhecidas (meta-reset RN9, URL persistente), nota sobre decisao de nao usar Milestones e novo padrao a11y `data-focus-injetado`.
+- **PR #26 mergeado em `develop` (2026-06-21):** **conformidade PRD** — fecha 2 das 4 limitacoes conhecidas.
+  - **Fix RN9:** `compraReducer.finalizarCompra` agora zera `meta: null` alem da compraAtual. O registro do historico continua salvando a meta que estava ativa (preserva RN10).
+  - **Aviso de storage em qualquer rota:** novo `src/components/Layout/` envolve as 4 rotas via `<Outlet />` do react-router v7. AlertMessage de `erroStorage` saiu da Home e mora no Layout, com posicionamento `position: absolute` no `#root` para nao mexer no flex layout do `.csm-screen` (evita risco de regressao de altura). Banner sobrepoe brevemente o Header ate o usuario fechar pelo X.
+- **PR #27 mergeado em `develop` (2026-06-21):** **robustez do estado** — fecha as outras 2 limitacoes + bug bonus.
+  - **URL persistente:** `useSearchParams` substitui `useState` para aba ativa (`?aba=catalogo|historico`) e compra selecionada no detalhe (`?compra=h-XXX`). F5 mantem usuario onde estava, deep-link funciona, botoes voltar/avancar do browser navegam entre abas. Fluxo antigo (`location.state.aba` do Cadastro) continua funcionando — promovido para URL no primeiro mount via `useEffect` com `replace: true`.
+  - **Item "Produto indisponivel" sem API:** `montarItem` devolve placeholder em vez de null quando o produto nao esta no catalogo. `.filter(Boolean)` removido. `ShoppingListItem` ganha prop `indisponivel` (italico cinza no nome, subtotal vira "—", "Sem informacoes do catalogo" no lugar do preco). AlertMessage no topo da aba informa quantos itens estao indisponiveis. Total ignora indisponiveis (preco desconhecido = 0).
+  - **Bug bonus — busca sem acento:** descoberto no teste manual. `normalizarBusca()` usa `String.normalize("NFD")` + regex para remover acentos antes de comparar. "feijao" agora encontra "Feijão", "acucar" encontra "Açúcar". UX padrao no Brasil para celular.
+- **PR #28 mergeado em `develop` (2026-06-21):** **stretch goal S4 + UX bonus**.
+  - **S4 do PRD — excluir compra do historico:** nova action `excluirCompraHistorico({id})` no reducer (idempotente). UI: secao "Zona de risco" no detalhe da compra com botao danger + modal de confirmacao (mesmo padrao dos PRs #15 e #19 para foco). Apos confirmar, limpa `?compra=` da URL e volta para a lista. Disponivel tambem para compras antigas (formato legado). Atualiza a leitura pratica da RN10: registros continuam imutaveis para edicao, mas o stretch S4 libera exclusao explicita pelo usuario.
+  - **Bonus — botao X na busca:** `Input` ganha prop opcional `onClear`. Quando passada E o campo tem valor, renderiza botao "X" dentro do campo (canto direito). Padrao de UX de apps mobile. Descoberto no teste manual do S4. Acessivel — aria-label e Tab funciona.
+  - **Testes:** 57 -> 59 (+2 testes do reducer: exclui pelo id, ignora id inexistente).
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
-- **Compra orfa quando a API esta offline** — identificada no teste manual do PR #13 (2026-06-10). Quando o `json-server` esta fora do ar, a tela `/listagem` aba "Minha compra" mostra "R$ 0,00 / Sua lista esta vazia" mesmo havendo itens persistidos no localStorage. Causa: a Listagem cruza `compraAtual` (IDs) com a lista `produtos` do CatalogoContext via `montarItem`; sem produtos carregados, `.filter(Boolean)` esvazia. **Dados nao sao perdidos** — assim que a API volta, a compra reaparece intacta. Possiveis correcoes: (a) cachear no localStorage um snapshot dos produtos referenciados, (b) mostrar item "Produto indisponivel" com aviso quando o catalogo faltar.
-- **Aviso de storage corrompido so na Home** — identificada no PR #14 (2026-06-10). Se o usuario entrar por deep link em `/listagem` com o storage corrompido, perde o aviso "Sua compra anterior nao pode ser recuperada". Cenario raro (rota canonica e a Home), mas vale resolver promovendo o aviso para um componente que monta em qualquer rota (talvez no proprio Provider ou no layout do App).
-- **Finalizar compra nao zera a meta (viola RN9 do PRD)** — identificada no PR #24 (2026-06-20). RN9 do PRD diz "zera `compraAtual` E `meta`", mas o reducer (`compraReducer.js`, case `finalizarCompra`) zera so `compraAtual`. Resultado: a meta antiga continua aplicada na compra seguinte como se fosse intencional. Fix simples: adicionar `meta: null` no return do case. Bug pre-existente, nao introduzido pelo PR #24 — so foi encontrado durante o teste manual dele.
-- **Aba ativa e detalhe do historico nao sobrevivem ao F5** — identificada no PR #24 (2026-06-20). Hoje a aba ativa de `/listagem` (compra/catalogo/historico) e a compra selecionada no detalhe moram em state local — F5 reseta para a aba "Minha compra" e o detalhe se perde. Proposta: usar `useSearchParams` do react-router para refletir o estado na URL (`?aba=historico&compra=h-XXX`). Beneficios: F5 mantem usuario onde estava, habilita deep-linking, botoes voltar/avancar do browser navegam entre abas.
+**Todas as 4 limitacoes conhecidas anteriores foram resolvidas nos PRs #26 e #27.** Sem novas limitacoes registradas neste momento.
 
 ### Proxima fase
 
-**MVP F1-F11 do PRD fechado (2026-06-20, PR #24).** Sem proxima feature decidida ainda. Opcoes para conversar com o usuario:
+**Polimento completo e 2 stretch goals entregues (2026-06-21, PRs #26, #27, #28).** Estado do projeto:
 
-- **PR de polimento juntando as 4 limitacoes conhecidas acima** — caminho natural, todas sao bugs pequenos com correcao pontual. Sugestao de ordem: meta-reset (RN9, ~1 linha) → aviso de storage em qualquer rota → URL persistente da aba/detalhe → compra orfa sem API.
-- **Stretch goals (S1 a S4 do PRD):** S1 historico de precos por produto, S2 editar produto (ja feito no PR #17!), S3 filtrar/buscar produto, S4 excluir compra do historico. Avaliar quais ainda fazem sentido apos PRs ja entregues.
-- **Promover ja para `main`** — o projeto ja esta pronto para release. Decisao do usuario.
+- ✅ MVP F1-F11 do PRD
+- ✅ 4 de 4 limitacoes conhecidas resolvidas
+- ✅ Stretch goals S2 (editar produto, PR #17) e S4 (excluir compra, PR #28)
+
+**Proximo passo planejado:** release `develop` -> `main`. Promove tudo (MVP + polimento + stretch) para a branch oficial de release. A `main` continua representando "versao pronta para uso" conforme regra do CLAUDE global.
+
+**Roadmap pos-release** (caso o usuario queira continuar evoluindo apos a entrega):
+- **S1 do PRD** — historico de precos por produto (derivar do `historicoCompras`, que ja tem snapshot completo desde PR #24). Tela ou secao nova, ~80-120 linhas.
+- **S3 do PRD** — filtrar/buscar produto. Parcialmente coberto pela busca textual no Catalogo (com tolerancia a acentos no PR #27). Filtro por categoria seria a extensao natural.
+- **Versao 1.5 do PRD** — multiplas listas simultaneas nomeadas (ver secao "Roadmap pos-entrega" do PRD).
 
 **Confirmar com o usuario antes de codar.**
 
@@ -138,10 +154,11 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 ### Roteiro restante
 
-- **Possiveis proximos passos** (a confirmar com o usuario):
-  - PR de polimento juntando as 4 limitacoes conhecidas listadas acima.
-  - Stretch goals do PRD (S1, S3, S4 — S2 ja foi feito no PR #17).
-  - Promover para `main` (release).
+- **Imediato (pos-PRs #26-#28):** release `develop` -> `main`.
+- **Pos-release** (caso o usuario queira continuar):
+  - Stretch S1 do PRD — historico de precos por produto.
+  - Stretch S3 do PRD — filtro por categoria no Catalogo (busca textual ja existe).
+  - Versao 1.5 do PRD — multiplas listas simultaneas nomeadas.
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
