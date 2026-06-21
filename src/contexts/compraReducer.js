@@ -27,6 +27,10 @@ import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
        continuar legivel mesmo se um produto for editado/excluido depois
        (RN10 do PRD: historico imutavel). dataAtual e opcional (default =
        new Date()) e existe principalmente para o teste poder fixar a data.
+   - excluirCompraHistorico({ id })
+       Remove uma compra do historico pelo id. Stretch goal S4 do PRD —
+       MVP tratava historico como imutavel (RN10), mas o stretch libera
+       exclusao para o usuario poder limpar registros antigos.
 
    Acoes desconhecidas devolvem o estado intacto.
    ============================================================ */
@@ -129,6 +133,14 @@ export function compraReducer(state, action) {
     case "definirMeta": {
       const { valor } = action.payload;
       return { ...state, meta: valor };
+    }
+
+    case "excluirCompraHistorico": {
+      const { id } = action.payload;
+      return {
+        ...state,
+        historicoCompras: state.historicoCompras.filter((c) => c.id !== id),
+      };
     }
 
     case "finalizarCompra": {

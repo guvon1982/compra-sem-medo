@@ -110,6 +110,40 @@ describe("compraReducer", () => {
     expect(state.historicoCompras[0].data).toBeTruthy();
   });
 
+  it("excluirCompraHistorico remove a compra pelo id (S4 — stretch)", () => {
+    const base = {
+      compraAtual: [],
+      meta: null,
+      historicoCompras: [
+        { id: "h1", data: "01 jun 2026", total: 50, itens: 2, meta: null },
+        { id: "h2", data: "02 jun 2026", total: 80, itens: 3, meta: 100 },
+        { id: "h3", data: "03 jun 2026", total: 30, itens: 1, meta: null },
+      ],
+    };
+    const state = compraReducer(base, {
+      type: "excluirCompraHistorico",
+      payload: { id: "h2" },
+    });
+    expect(state.historicoCompras).toHaveLength(2);
+    expect(state.historicoCompras.find((c) => c.id === "h2")).toBeUndefined();
+    expect(state.historicoCompras.map((c) => c.id)).toEqual(["h1", "h3"]);
+  });
+
+  it("excluirCompraHistorico ignora id inexistente (nao quebra estado)", () => {
+    const base = {
+      compraAtual: [],
+      meta: null,
+      historicoCompras: [
+        { id: "h1", data: "01 jun 2026", total: 50, itens: 2, meta: null },
+      ],
+    };
+    const state = compraReducer(base, {
+      type: "excluirCompraHistorico",
+      payload: { id: "h-inexistente" },
+    });
+    expect(state.historicoCompras).toHaveLength(1);
+  });
+
   it("ignora acao desconhecida e devolve o mesmo estado", () => {
     const state = compraReducer(estadoInicialCompra, {
       type: "inexistente",
