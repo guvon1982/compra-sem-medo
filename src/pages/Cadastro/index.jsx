@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate, useParams } from "react-router";
 import "./Cadastro.css";
 import Header from "../../components/Header";
@@ -23,8 +24,17 @@ import * as produtoService from "../../services/produtoService";
    - /cadastro       -> modo "criar"
    - /cadastro/:id   -> modo "editar"
 
+   O formulario usa react-hook-form (mesma lib da aula06 do
+   professor). Como os campos sao renderizados pelo nosso
+   componente controlado <Input>, usamos <Controller> — a forma
+   recomendada pela lib para integrar componentes controlados
+   customizados. As regras de validacao (rules) preservam o
+   comportamento anterior: nome unico (RN2), preco > 0, e os
+   campos obrigatorios. handleSubmit so chama onValid quando
+   tudo passa.
+
    Em modo editar, na montagem chamamos produtoService.obter(id)
-   para pre-preencher o form (padrao da aula06 do professor).
+   e usamos reset() para pre-preencher o form.
 
    No rodape do form em modo editar mora a "zona perigosa":
    botao "Excluir produto". Politica de orfao: se o produto
@@ -43,8 +53,19 @@ export default function Cadastro() {
 
   const { produtos, adicionarProduto, editarProduto, removerProduto } = useCatalogo();
   const { compraAtual } = useCompra();
-  const [form, setForm] = useState(FORM_VAZIO);
-  const [errors, setErrors] = useState({});
+
+  // react-hook-form: control liga os <Controller> ao form; handleSubmit
+  // valida antes de chamar onValid; reset preenche/limpa os campos;
+  // getValues("nome") da o valor atual do nome (leitura pontual, usada no
+  // titulo do modal de exclusao); errors traz as mensagens por campo.
+  const {
+    control,
+    handleSubmit,
+    reset,
+    getValues,
+    formState: { errors },
+  } = useForm({ defaultValues: FORM_VAZIO });
+
   const [sucesso, setSucesso] = useState(null);
   const [erroEnvio, setErroEnvio] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -92,7 +113,7 @@ export default function Cadastro() {
         return;
       }
 
-      setForm({
+      reset({
         nome: resp.nome ?? "",
         categoria: resp.categoria ?? "",
         unidade: resp.unidade ?? "",
@@ -105,7 +126,7 @@ export default function Cadastro() {
 
     carregar();
     return () => { cancelado = true; };
-  }, [id, modoEdicao]);
+  }, [id, modoEdicao, reset]);
 
   // Acessibilidade do modal de exclusao: ao abrir, foco vai para o botao
   // destrutivo; ao fechar (depois de aberto), volta para o botao Excluir
@@ -123,43 +144,36 @@ export default function Cadastro() {
     }
   }, [confirmandoExclusao]);
 
-  const set = (campo) => (e) => {
-    setForm((f) => ({ ...f, [campo]: e.target.value }));
-    setErrors((er) => ({ ...er, [campo]: undefined }));
-  };
-
-  function validar() {
-    const er = {};
-    if (form.nome.trim().length < 2) {
-      er.nome = "Dê um nome com pelo menos 2 letras.";
-    } else if (temNomeDuplicado(form.nome, produtos, id)) {
-      // RN2 do PRD: nome unico no catalogo (case-insensitive, sem espacos nas pontas).
-      // Em modo edicao, passamos `id` para nao acusar o proprio produto.
-      er.nome = "Já existe um produto com esse nome no catálogo.";
+  // Validacao do nome: cobre vazio/curto E a regra RN2 (nome unico).
+  // Em modo edicao, passamos `id` para temNomeDuplicado nao acusar o
+  // proprio produto como duplicado.
+  function validarNome(valor) {
+    const nome = (valor || "").trim();
+    if (nome.length < 2) return "Dê um nome com pelo menos 2 letras.";
+    if (temNomeDuplicado(nome, produtos, id)) {
+      return "Já existe um produto com esse nome no catálogo.";
     }
-    if (!form.categoria) er.categoria = "Escolha uma categoria.";
-    if (!form.unidade) er.unidade = "Escolha uma unidade.";
-    const p = parsePreco(form.preco);
-    if (!form.preco.trim()) er.preco = "Informe o preço do produto.";
-    else if (Number.isNaN(p) || p <= 0) er.preco = "Use um valor válido, ex.: 24,90.";
-    return er;
+    return true;
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    const er = validar();
-    setErrors(er);
-    if (Object.keys(er).length > 0) {
-      setSucesso(null);
-      setErroEnvio(null);
-      return;
-    }
-    const nomeProduto = form.nome.trim();
+  // Validacao do preco: usa parsePreco (aceita "24,90", "1.234,56" etc.)
+  // e rejeita vazio, NaN ou valores <= 0 (RN5).
+  function validarPreco(valor) {
+    if (!(valor || "").trim()) return "Informe o preço do produto.";
+    const p = parsePreco(valor);
+    if (Number.isNaN(p) || p <= 0) return "Use um valor válido, ex.: 24,90.";
+    return true;
+  }
+
+  // Chamada pelo handleSubmit do react-hook-form apenas quando TODOS os
+  // campos passam na validacao. `values` ja vem com os campos do form.
+  async function onValid(values) {
+    const nomeProduto = values.nome.trim();
     const dados = {
       nome: nomeProduto,
-      categoria: form.categoria,
-      unidade: form.unidade,
-      preco: parsePreco(form.preco),
+      categoria: values.categoria,
+      unidade: values.unidade,
+      preco: parsePreco(values.preco),
     };
 
     setEnviando(true);
@@ -171,7 +185,7 @@ export default function Cadastro() {
       } else {
         await adicionarProduto(dados);
         setSucesso(nomeProduto);
-        setForm(FORM_VAZIO);
+        reset(FORM_VAZIO);
       }
     } catch (err) {
       setSucesso(null);
@@ -182,6 +196,13 @@ export default function Cadastro() {
     } finally {
       setEnviando(false);
     }
+  }
+
+  // Chamada quando o submit falha na validacao: limpa avisos antigos para
+  // a tela mostrar so os erros de campo (espelha o comportamento anterior).
+  function onInvalid() {
+    setSucesso(null);
+    setErroEnvio(null);
   }
 
   // "Excluir produto" no rodape do form -> decide se abre o modal ou
@@ -250,7 +271,7 @@ export default function Cadastro() {
             />
           </div>
         ) : (
-          <form className="csm-content" onSubmit={handleSubmit} noValidate>
+          <form className="csm-content" onSubmit={handleSubmit(onValid, onInvalid)} noValidate>
             {erroEnvio && (
               <AlertMessage
                 variant="error"
@@ -318,47 +339,79 @@ export default function Cadastro() {
               </section>
             )}
 
-            <Input
-              label="Nome do produto"
-              placeholder="Ex.: Arroz Tio João 5kg"
-              value={form.nome}
-              onChange={set("nome")}
-              error={errors.nome}
-              required
+            <Controller
+              name="nome"
+              control={control}
+              rules={{ validate: validarNome }}
+              render={({ field }) => (
+                <Input
+                  label="Nome do produto"
+                  placeholder="Ex.: Arroz Tio João 5kg"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.nome?.message}
+                  required
+                />
+              )}
             />
 
-            <Input
-              as="select"
-              label="Categoria"
-              placeholder="Selecione a categoria"
-              options={CATEGORIAS}
-              value={form.categoria}
-              onChange={set("categoria")}
-              error={errors.categoria}
-              required
+            <Controller
+              name="categoria"
+              control={control}
+              rules={{ required: "Escolha uma categoria." }}
+              render={({ field }) => (
+                <Input
+                  as="select"
+                  label="Categoria"
+                  placeholder="Selecione a categoria"
+                  options={CATEGORIAS}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.categoria?.message}
+                  required
+                />
+              )}
             />
 
-            <Input
-              as="select"
-              label="Unidade"
-              placeholder="Selecione a unidade"
-              options={UNIDADES}
-              value={form.unidade}
-              onChange={set("unidade")}
-              error={errors.unidade}
-              required
+            <Controller
+              name="unidade"
+              control={control}
+              rules={{ required: "Escolha uma unidade." }}
+              render={({ field }) => (
+                <Input
+                  as="select"
+                  label="Unidade"
+                  placeholder="Selecione a unidade"
+                  options={UNIDADES}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.unidade?.message}
+                  required
+                />
+              )}
             />
 
-            <Input
-              label="Preço"
-              placeholder="0,00"
-              prefix="R$"
-              inputMode="decimal"
-              value={form.preco}
-              onChange={set("preco")}
-              error={errors.preco}
-              hint="Usado para calcular o total da compra."
-              required
+            <Controller
+              name="preco"
+              control={control}
+              rules={{ validate: validarPreco }}
+              render={({ field }) => (
+                <Input
+                  label="Preço"
+                  placeholder="0,00"
+                  prefix="R$"
+                  inputMode="decimal"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.preco?.message}
+                  hint="Usado para calcular o total da compra."
+                  required
+                />
+              )}
             />
 
             <div className="csm-cadastro__actions">
@@ -426,7 +479,7 @@ export default function Cadastro() {
               className="csm-modal__title"
               id="csm-cadastro-excluir-title"
             >
-              Excluir “{form.nome}”?
+              Excluir “{getValues("nome")}”?
             </h2>
             <p className="csm-modal__text">
               Essa ação não pode ser desfeita. O produto vai sair do catálogo.
