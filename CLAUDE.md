@@ -306,7 +306,7 @@ Option IDs (Status):
 **Receitas** (rodar do host, fora do container):
 
 ```bash
-# Listar tudo no board (estado atual; output e grande, usar --limit ou jq)
+# Listar tudo no board (estado atual; output e grande, usar --limit)
 gh project item-list 2 --owner guvon1982 --format json --limit 30
 
 # Ver os campos do board (se precisar redescobrir IDs por algum motivo)
@@ -321,9 +321,36 @@ gh project item-create 2 --owner guvon1982 --title "Titulo curto" --body "Descri
 # Mover um card para outra coluna (precisa do item ID retornado pelos comandos acima)
 gh project item-edit --id <item-id> --field-id PVTSSF_lAHOC-k1r84BabMkzhVS65s --project-id PVT_kwHOC-k1r84BabMk --single-select-option-id <option-id>
 
+# Deletar um card (draft ou link de PR) do board
+gh project item-delete 2 --owner guvon1982 --id <item-id>
+
 # Alterar config do board (publico/privado, descricao) via GraphQL
 gh api graphql -f query='mutation { updateProjectV2(input: { projectId: "PVT_kwHOC-k1r84BabMk", public: true }) { projectV2 { public } } }'
 ```
+
+**ATENCAO — NUNCA usar `grep` em cima do JSON do `gh project item-list`.** O comando devolve TUDO em UMA UNICA LINHA, entao `grep -B2 '"number":NN'` retorna sempre o mesmo trecho independente do PR procurado. Bug silencioso: o `gh project item-edit` aceita o ID errado, move o card errado, NAO retorna erro. Em 2026-06-21, isso fez 5 PRs ficarem presos em `In review` apos o merge — o board precisou de limpeza manual.
+
+**Receita correta — encontrar o ID de um card pelo numero do PR (PowerShell, Windows nativo):**
+
+```powershell
+$json = gh project item-list 2 --owner guvon1982 --format json --limit 50 | ConvertFrom-Json
+$json.items | Where-Object { $_.content.number -eq <NUM> } | ForEach-Object { $_.id }
+```
+
+Listar todos por status (util para auditoria do board):
+
+```powershell
+$json = gh project item-list 2 --owner guvon1982 --format json --limit 50 | ConvertFrom-Json
+$json.items | Group-Object { if ($_.status) { $_.status } else { "(No Status)" } } | Sort-Object Name | ForEach-Object {
+  ">>> $($_.Name) ($($_.Count))"
+  $_.Group | ForEach-Object {
+    $num = if ($_.content.number) { "PR#$($_.content.number)" } else { "draft" }
+    "  $num : $($_.title)"
+  }
+}
+```
+
+Em ambiente sem PowerShell (CI, Linux puro), usar `jq` — mas o projeto roda no Windows, entao PowerShell e o caminho padrao.
 
 ### Workflow obrigatorio por feature
 
@@ -333,6 +360,7 @@ Toda feature nova (code OU docs significativas) deve ter um card que percorre to
 2. **Ao comecar a codar** — mover o card para `In progress`.
 3. **Ao abrir o PR** — linkar o PR ao card (`item-add` com a URL do PR) e mover para `In review`. Se ja existia draft, criar um item linkado ao PR e remover/aposentar o draft.
 4. **Apos merge em `develop`** — mover o card para `Done`.
+5. **VERIFICAR** — listar o board e confirmar que o card esta no estado esperado. NAO assumir que o comando funcionou so porque nao deu erro (o `gh project item-edit` aceita ID errado e move silenciosamente o card errado). Usar a receita PowerShell "Listar todos por status" da secao acima.
 
 Hot-fixes documentais minusculas (ex.: corrigir typo no README) podem passar direto pelo Kanban sem card. Use bom senso: se valeu PR separado, vale card separado.
 
