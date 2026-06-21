@@ -11,6 +11,7 @@ import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
 import { CATEGORIAS, UNIDADES } from "../../data/mock";
 import { parsePreco } from "../../utils/currency";
+import { temNomeDuplicado } from "../../utils/catalogo";
 import { useCatalogo } from "../../contexts/CatalogoContext";
 import { useCompra } from "../../contexts/CompraContext";
 import * as produtoService from "../../services/produtoService";
@@ -40,7 +41,7 @@ export default function Cadastro() {
   const { id } = useParams();
   const modoEdicao = Boolean(id);
 
-  const { adicionarProduto, editarProduto, removerProduto } = useCatalogo();
+  const { produtos, adicionarProduto, editarProduto, removerProduto } = useCatalogo();
   const { compraAtual } = useCompra();
   const [form, setForm] = useState(FORM_VAZIO);
   const [errors, setErrors] = useState({});
@@ -129,7 +130,13 @@ export default function Cadastro() {
 
   function validar() {
     const er = {};
-    if (form.nome.trim().length < 2) er.nome = "Dê um nome com pelo menos 2 letras.";
+    if (form.nome.trim().length < 2) {
+      er.nome = "Dê um nome com pelo menos 2 letras.";
+    } else if (temNomeDuplicado(form.nome, produtos, id)) {
+      // RN2 do PRD: nome unico no catalogo (case-insensitive, sem espacos nas pontas).
+      // Em modo edicao, passamos `id` para nao acusar o proprio produto.
+      er.nome = "Já existe um produto com esse nome no catálogo.";
+    }
     if (!form.categoria) er.categoria = "Escolha uma categoria.";
     if (!form.unidade) er.unidade = "Escolha uma unidade.";
     const p = parsePreco(form.preco);
