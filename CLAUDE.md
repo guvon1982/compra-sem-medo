@@ -8,7 +8,9 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
 **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 (publico). Colunas: `Backlog` → `To do` → `In progress` → `In review` → `Done`. Cards de feature linkam para os PRs reais. Criado em 2026-06-11 com 12 PRs retroativos em `Done` + 2 limitacoes conhecidas em `Backlog` + 1 placeholder em `To do`.
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa. **Estado atual (2026-06-21):** MVP F1-F11 do PRD fechado, **4 de 4 limitacoes conhecidas resolvidas** via PRs de polimento (#26, #27), **2 de 4 stretch goals do PRD entregues** (S2 editar produto no PR #17, S4 excluir compra do historico no PR #28). Proximo passo natural: release `develop` -> `main` (a `main` continua representando "versao pronta para uso" — ver workflow do CLAUDE global). Stretch goals S1 (historico de precos por produto) e S3 (filtrar/buscar produto, parcialmente coberto pela busca textual ja existente) ficam como roadmap pos-entrega.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa. **Estado atual (2026-06-21):** MVP F1-F11 do PRD fechado, **4 de 4 limitacoes conhecidas resolvidas** via PRs de polimento (#26, #27), **2 de 4 stretch goals do PRD entregues** (S2 editar produto no PR #17, S4 excluir compra do historico no PR #28). **Aguardando aprovacao do professor** para promover `develop` para `main`. Stretch goals S1 (historico de precos por produto) e S3 (filtrar/buscar produto, parcialmente coberto pela busca textual ja existente) ficam como roadmap pos-entrega.
+
+**REGRA ESPECIFICA DESTE PROJETO — release `develop -> main`:** diferente do workflow padrao do CLAUDE global (onde `main` recebe `develop` quando o usuario decide), aqui o gatilho e **externo**: o professor avalia a `develop` e, **somente apos a aprovacao explicita do usuario** ("o professor aprovou, pode promover"), a release acontece. Antes disso, **NAO abrir PR de `develop -> main` por iniciativa propria**. PR #30 foi aberto prematuramente em 2026-06-21 e fechado pelo mesmo motivo — ja existe um card "Release v1.0 — promove develop para main" no `Backlog` do Kanban esperando o gatilho.
 
 ### O que ja foi feito
 
@@ -154,7 +156,7 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 ### Roteiro restante
 
-- **Imediato (pos-PRs #26-#28):** release `develop` -> `main`.
+- **Imediato:** **aguardar aprovacao do professor** (ele avalia a `develop`). Quando aprovado, o usuario confirma e abrimos o PR `develop -> main` (ver regra acima — nao fazer por iniciativa propria).
 - **Pos-release** (caso o usuario queira continuar):
   - Stretch S1 do PRD — historico de precos por produto.
   - Stretch S3 do PRD — filtro por categoria no Catalogo (busca textual ja existe).
