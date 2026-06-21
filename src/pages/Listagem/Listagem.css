@@ -127,6 +127,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Zona de risco do detalhe (S4 — excluir compra) */
+.csm-hist-detalhe__perigo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-2);
+}
+
+/* Variante do icone do modal quando a acao e destrutiva (vs check-circulo verde) */
+.csm-modal__icon--perigo {
+  background: var(--color-orange-soft);
+  color: var(--color-orange-alert);
+}
+
 /* ---- Modal de confirmação ---- */
 .csm-modal {
   position: absolute;

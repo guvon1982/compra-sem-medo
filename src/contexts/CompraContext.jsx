@@ -52,6 +52,8 @@ export function CompraProvider({ children }) {
           type: "finalizarCompra",
           payload: { total, itensDetalhados, dataAtual: new Date() },
         }),
+      excluirCompraHistorico: (id) =>
+        dispatch({ type: "excluirCompraHistorico", payload: { id } }),
     }),
     [state.compraAtual, state.meta, state.historicoCompras, erroStorage],
   );

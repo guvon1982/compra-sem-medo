@@ -93,3 +93,26 @@ select.csm-input__control {
   color: var(--color-orange-alert);
   font-weight: var(--font-weight-medium);
 }
+
+/* Botao "X" para limpar a busca (aparece quando onClear e passado E ha valor) */
+.csm-input__field.has-clear .csm-input__control {
+  padding-right: var(--space-8); /* espaco para o botao X nao sobrepor o texto */
+}
+.csm-input__clear {
+  position: absolute;
+  right: var(--space-1);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-secondary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.csm-input__clear:hover {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+}

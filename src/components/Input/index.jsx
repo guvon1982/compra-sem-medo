@@ -1,4 +1,5 @@
 import { useId } from "react";
+import Icon from "../Icon";
 import "./Input.css";
 
 /* ============================================================
@@ -7,6 +8,11 @@ import "./Input.css";
    via prop `error`. `hint` para ajuda. Suporta input | select |
    textarea pela prop `as` (categoria/unidade da tela Cadastro
    usam o mesmo componente).
+
+   onClear (opcional): quando passada E o campo tem valor,
+   renderiza um botao "X" dentro do campo para limpar a busca
+   sem precisar segurar backspace. Util em campos de busca no
+   mobile (padrao de UX dos apps nativos).
    ============================================================ */
 
 export default function Input({
@@ -22,6 +28,7 @@ export default function Input({
   hint,
   required = false,
   prefix,
+  onClear,
   ...rest
 }) {
   const autoId = useId();
@@ -51,7 +58,7 @@ export default function Input({
         </label>
       )}
 
-      <div className={`csm-input__field ${prefix ? "has-prefix" : ""}`}>
+      <div className={`csm-input__field ${prefix ? "has-prefix" : ""} ${onClear && value ? "has-clear" : ""}`}>
         {prefix && <span className="csm-input__prefix">{prefix}</span>}
 
         {as === "select" ? (
@@ -68,6 +75,17 @@ export default function Input({
           <textarea {...controlProps} placeholder={placeholder} rows={rest.rows || 3} />
         ) : (
           <input {...controlProps} type={type} placeholder={placeholder} />
+        )}
+
+        {onClear && value && as === "input" && (
+          <button
+            type="button"
+            className="csm-input__clear"
+            onClick={onClear}
+            aria-label={`Limpar ${label || "campo"}`}
+          >
+            <Icon name="fechar" size={16} />
+          </button>
         )}
       </div>
 

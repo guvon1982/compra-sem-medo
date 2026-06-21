@@ -111,6 +111,7 @@ export default function Listagem() {
     removerItem,
     definirMeta,
     finalizarCompra,
+    excluirCompraHistorico,
   } = useCompra();
 
   // Aba ativa e detalhe do historico moram na URL via useSearchParams.
@@ -153,6 +154,8 @@ export default function Listagem() {
   const [erroMeta, setErroMeta] = useState(null);
   // ID do card que abriu o detalhe — usado para devolver o foco ao voltar (a11y).
   const [idVoltar, setIdVoltar] = useState(null);
+  // Modal de confirmacao para excluir compra do historico (S4 — stretch).
+  const [confirmandoExcluirHist, setConfirmandoExcluirHist] = useState(false);
 
   // Itens da compra atual com nome/preco/unidade resolvidos do catalogo.
   // Quando algum produto nao esta no catalogo (API offline, produto excluido),
@@ -218,6 +221,32 @@ export default function Listagem() {
       focarVisivel(cardsHistRef.current[idVoltar]);
     }
   }, [compraSelecionada, idVoltar]);
+
+  // Acessibilidade do modal de excluir compra do historico (S4):
+  // ao abrir, foco no destrutivo; ao fechar, foco volta ao botao "Excluir".
+  const excluirHistBotaoRef = useRef(null);
+  const confirmarExcluirHistRef = useRef(null);
+  const confirmarExcluirHistJaAbriu = useRef(false);
+
+  useEffect(() => {
+    if (confirmandoExcluirHist) {
+      confirmarExcluirHistJaAbriu.current = true;
+      focarVisivel(confirmarExcluirHistRef.current);
+    } else if (confirmarExcluirHistJaAbriu.current) {
+      focarVisivel(excluirHistBotaoRef.current);
+    }
+  }, [confirmandoExcluirHist]);
+
+  function confirmarExcluirCompra() {
+    if (!compraSelecionada) return;
+    const id = compraSelecionada.id;
+    setConfirmandoExcluirHist(false);
+    excluirCompraHistorico(id);
+    setSearchParams((p) => {
+      p.delete("compra");
+      return p;
+    });
+  }
 
   function handleAbrirMeta() {
     setValorMeta(meta != null ? String(meta).replace(".", ",") : "");
@@ -428,6 +457,7 @@ export default function Listagem() {
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               prefix={<Icon name="busca" size={18} />}
+              onClear={() => setBusca("")}
             />
 
             {carregando ? (
@@ -613,6 +643,20 @@ export default function Listagem() {
                 aqui com a lista completa.
               </AlertMessage>
             )}
+
+            {/* Zona de risco (S4 — stretch): excluir compra do historico */}
+            <section className="csm-hist-detalhe__perigo" aria-label="Zona de risco">
+              <p className="csm-section-label">Zona de risco</p>
+              <Button
+                ref={excluirHistBotaoRef}
+                variant="danger"
+                fullWidth
+                iconLeft={<Icon name="lixeira" size={18} />}
+                onClick={() => setConfirmandoExcluirHist(true)}
+              >
+                Excluir esta compra do histórico
+              </Button>
+            </section>
           </div>
         )}
       </main>
@@ -636,6 +680,29 @@ export default function Listagem() {
               </Button>
               <Button variant="ghost" size="md" fullWidth onClick={() => setConfirmar(false)}>
                 Continuar comprando
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ---- Confirmacao de excluir compra do historico (S4) ---- */}
+      {confirmandoExcluirHist && compraSelecionada && (
+        <div className="csm-modal" role="dialog" aria-modal="true" aria-labelledby="csm-modal-excluir-hist-title">
+          <div className="csm-modal__backdrop" onClick={() => setConfirmandoExcluirHist(false)} />
+          <Card padding="lg" className="csm-modal__card">
+            <span className="csm-modal__icon csm-modal__icon--perigo"><Icon name="lixeira" size={28} /></span>
+            <h2 className="csm-modal__title" id="csm-modal-excluir-hist-title">Excluir esta compra?</h2>
+            <p className="csm-modal__text">
+              Esta ação é permanente. A compra de <strong>{compraSelecionada.data}</strong> no valor
+              de <strong>{formatBRL(compraSelecionada.total)}</strong> será removida do histórico.
+            </p>
+            <div className="csm-modal__actions">
+              <Button ref={confirmarExcluirHistRef} variant="danger" size="lg" fullWidth onClick={confirmarExcluirCompra}>
+                Sim, excluir
+              </Button>
+              <Button variant="ghost" size="md" fullWidth onClick={() => setConfirmandoExcluirHist(false)}>
+                Cancelar
               </Button>
             </div>
           </Card>
