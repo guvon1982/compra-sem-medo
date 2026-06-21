@@ -79,7 +79,7 @@ describe("compraReducer", () => {
     expect(state.meta).toBe(200);
   });
 
-  it("finalizarCompra zera a compra e empilha registro no historico com snapshot dos itens", () => {
+  it("finalizarCompra zera compra E meta (RN9) e empilha registro no historico com snapshot", () => {
     const base = {
       compraAtual: [{ id: "p1", quantidade: 2 }],
       meta: 100,
@@ -98,11 +98,13 @@ describe("compraReducer", () => {
     });
 
     expect(state.compraAtual).toEqual([]);
+    // RN9: meta tambem zera — proxima compra comeca sem meta
+    expect(state.meta).toBeNull();
     expect(state.historicoCompras).toHaveLength(1);
     expect(state.historicoCompras[0]).toMatchObject({
       total: 50,
       itens: snapshot,
-      meta: 100,
+      meta: 100, // o registro do historico preserva a meta que estava ativa
     });
     expect(state.historicoCompras[0].id).toBeTruthy();
     expect(state.historicoCompras[0].data).toBeTruthy();
