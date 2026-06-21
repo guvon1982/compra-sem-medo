@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useLocation, useSearchParams } from "react-router";
 import "./Listagem.css";
 import Header from "../../components/Header";
 import BottomNavigation from "../../components/BottomNavigation";
@@ -35,11 +35,26 @@ const TABS = [
   { key: "historico", label: "Histórico" },
 ];
 
-// Junta uma entrada de compra (id + quantidade) com os dados do produto
+// Junta uma entrada de compra (id + quantidade) com os dados do produto.
+// Quando o produto nao esta no catalogo (API offline OU produto excluido),
+// devolve um placeholder marcado como indisponivel — assim a compra nao
+// "desaparece" da tela. O preco vai como 0 e nao entra no total ate o
+// produto voltar. UX: lista a presenca do item para o usuario nao achar
+// que perdeu dados, e oferece o botao "Remover" caso queira limpar.
 function montarItem(entrada, catalogo) {
   const produto = catalogo.find((p) => p.id === entrada.id);
-  if (!produto) return null;
-  return { ...produto, quantidade: entrada.quantidade };
+  if (!produto) {
+    return {
+      id: entrada.id,
+      nome: "Produto indisponível",
+      categoria: "",
+      unidade: "—",
+      preco: 0,
+      quantidade: entrada.quantidade,
+      indisponivel: true,
+    };
+  }
+  return { ...produto, quantidade: entrada.quantidade, indisponivel: false };
 }
 
 // Histórico antigo guardava `itens` como número (contagem). Versão atual
@@ -53,6 +68,15 @@ function contarItens(h) {
   }
   if (typeof h.itens === "number") return h.itens;
   return 0;
+}
+
+// Normaliza string para busca tolerante a acentos (ã, á, é, ç, etc).
+// JS decompoe "ã" em "a" + caractere combinante "~" via NFD; a regex tira
+// esses caracteres combinantes (faixa Unicode U+0300 a U+036F). Resultado:
+// "feijão" vira "feijao", "açúcar" vira "acucar". Permite o usuario buscar
+// sem precisar digitar acentos no celular.
+function normalizarBusca(s) {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 // Foca um elemento E garante que o anel azul aparece. Browsers (Chrome/Edge)
@@ -89,40 +113,81 @@ export default function Listagem() {
     finalizarCompra,
   } = useCompra();
 
-  // Estado local — apenas UI (qual aba, texto da busca, flags de modal/alerta).
-  // Aba inicial pode vir como "recado" da pagina anterior via state da navegacao
-  // (ex.: Cadastro envia { aba: "catalogo" } depois de salvar um produto).
-  // Lazy initializer (funcao dentro do useState) roda so no primeiro mount.
-  const [tab, setTab] = useState(() => {
+  // Aba ativa e detalhe do historico moram na URL via useSearchParams.
+  // - ?aba=catalogo|historico (omitido = "compra")
+  // - ?compra=h-XXX  (so faz sentido com aba=historico — detalhe da compra)
+  // Beneficios: F5 mantem onde o usuario estava, deep-link, browser back/forward.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const abaParam = searchParams.get("aba");
+  const tab = TAB_KEYS.includes(abaParam) ? abaParam : "compra";
+
+  function setTab(novaTab) {
+    setSearchParams((p) => {
+      if (novaTab === "compra") p.delete("aba"); // default — URL fica limpa
+      else p.set("aba", novaTab);
+      if (novaTab !== "historico") p.delete("compra"); // sai do detalhe ao trocar de aba
+      return p;
+    });
+  }
+
+  // Compatibilidade com fluxo antigo: Cadastro navega com state.aba.
+  // Se chegou state e URL nao tem aba, promove para a URL (replace
+  // para nao poluir o historico do browser).
+  useEffect(() => {
     const abaSugerida = location.state?.aba;
-    return TAB_KEYS.includes(abaSugerida) ? abaSugerida : "compra";
-  });
+    if (
+      abaSugerida &&
+      TAB_KEYS.includes(abaSugerida) &&
+      !searchParams.get("aba")
+    ) {
+      setSearchParams({ aba: abaSugerida }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [busca, setBusca] = useState("");
   const [confirmar, setConfirmar] = useState(false);
   const [finalizada, setFinalizada] = useState(null);
   const [editandoMeta, setEditandoMeta] = useState(false);
   const [valorMeta, setValorMeta] = useState("");
   const [erroMeta, setErroMeta] = useState(null);
-  // Detalhe de uma compra do histórico (F11): null = lista; objeto = detalhe.
-  const [compraSelecionada, setCompraSelecionada] = useState(null);
   // ID do card que abriu o detalhe — usado para devolver o foco ao voltar (a11y).
   const [idVoltar, setIdVoltar] = useState(null);
 
   // Itens da compra atual com nome/preco/unidade resolvidos do catalogo.
+  // Quando algum produto nao esta no catalogo (API offline, produto excluido),
+  // montarItem devolve placeholder marcado como `indisponivel`. NAO usamos
+  // .filter(Boolean) — queremos preservar a presenca do item para o usuario.
   const list = useMemo(
-    () => compraAtual.map((e) => montarItem(e, produtos)).filter(Boolean),
+    () => compraAtual.map((e) => montarItem(e, produtos)),
     [compraAtual, produtos],
   );
 
-  const total = list.reduce((s, i) => s + i.preco * i.quantidade, 0);
+  // Indisponiveis nao entram no total (preco desconhecido = 0). itemCount
+  // inclui todos porque a quantidade salva nao deixa de existir.
+  const indisponiveis = list.filter((i) => i.indisponivel).length;
+  const total = list.reduce(
+    (s, i) => (i.indisponivel ? s : s + i.preco * i.quantidade),
+    0,
+  );
   const itemCount = list.reduce((s, i) => s + i.quantidade, 0);
   const budget = meta;
   const over = budget != null && total > budget;
 
+  // Detalhe de uma compra do historico (F11): vem do parametro `compra` na URL.
+  // Limita ao tab=historico e ao id existir; senao tratamos como "lista".
+  const compraSelecionada = useMemo(() => {
+    if (tab !== "historico") return null;
+    const compraIdParam = searchParams.get("compra");
+    if (!compraIdParam) return null;
+    return historicoCompras.find((h) => h.id === compraIdParam) || null;
+  }, [tab, searchParams, historicoCompras]);
+
   const addedIds = new Set(list.map((i) => i.id));
 
+  const buscaNorm = normalizarBusca(busca.trim());
   const filtrados = produtos.filter((p) =>
-    p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
+    normalizarBusca(p.nome).includes(buscaNorm),
   );
 
   // Acessibilidade do modal: ao abrir, foco vai para o botao primario;
@@ -289,6 +354,14 @@ export default function Listagem() {
               </AlertMessage>
             )}
 
+            {indisponiveis > 0 && (
+              <AlertMessage variant="alert" title="Alguns itens estão indisponíveis">
+                {indisponiveis === 1 ? "1 item" : `${indisponiveis} itens`} da sua compra está sem informações do catálogo agora (provavelmente a API caiu).
+                O total mostrado não inclui esse{indisponiveis === 1 ? "" : "s"} item{indisponiveis === 1 ? "" : "s"}.
+                Quando a conexão voltar, eles aparecem completos.
+              </AlertMessage>
+            )}
+
             {list.length === 0 ? (
               <EmptyState
                 icon="carrinho"
@@ -318,6 +391,7 @@ export default function Listagem() {
                           onIncrement={() => incrementar(item.id)}
                           onDecrement={() => decrementar(item.id)}
                           onRemove={() => removerItem(item.id)}
+                          indisponivel={item.indisponivel}
                         />
                       </li>
                     ))}
@@ -436,7 +510,11 @@ export default function Listagem() {
                         }}
                         onClick={() => {
                           setIdVoltar(h.id);
-                          setCompraSelecionada(h);
+                          setSearchParams((p) => {
+                            p.set("aba", "historico");
+                            p.set("compra", h.id);
+                            return p;
+                          });
                         }}
                         aria-label={`Ver detalhes da compra de ${h.data}, total ${formatBRL(h.total)}`}
                       >
@@ -470,7 +548,12 @@ export default function Listagem() {
               ref={voltarRef}
               variant="ghost"
               size="sm"
-              onClick={() => setCompraSelecionada(null)}
+              onClick={() =>
+                setSearchParams((p) => {
+                  p.delete("compra");
+                  return p;
+                })
+              }
               iconLeft={<Icon name="voltar" size={18} />}
             >
               Voltar ao histórico
