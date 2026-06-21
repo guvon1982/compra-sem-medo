@@ -14,6 +14,7 @@ import EmptyState from "../../components/EmptyState";
 import Icon from "../../components/Icon";
 import { CATEGORIAS, ICONE_CATEGORIA } from "../../data/mock";
 import { formatBRL, parsePreco } from "../../utils/currency";
+import { normalizar } from "../../utils/catalogo";
 import { useCatalogo } from "../../contexts/CatalogoContext";
 import { useCompra } from "../../contexts/CompraContext";
 
@@ -68,15 +69,6 @@ function contarItens(h) {
   }
   if (typeof h.itens === "number") return h.itens;
   return 0;
-}
-
-// Normaliza string para busca tolerante a acentos (ã, á, é, ç, etc).
-// JS decompoe "ã" em "a" + caractere combinante "~" via NFD; a regex tira
-// esses caracteres combinantes (faixa Unicode U+0300 a U+036F). Resultado:
-// "feijão" vira "feijao", "açúcar" vira "acucar". Permite o usuario buscar
-// sem precisar digitar acentos no celular.
-function normalizarBusca(s) {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 // Foca um elemento E garante que o anel azul aparece. Browsers (Chrome/Edge)
@@ -188,9 +180,9 @@ export default function Listagem() {
 
   const addedIds = new Set(list.map((i) => i.id));
 
-  const buscaNorm = normalizarBusca(busca.trim());
+  const buscaNorm = normalizar(busca);
   const filtrados = produtos.filter((p) =>
-    normalizarBusca(p.nome).includes(buscaNorm),
+    normalizar(p.nome).includes(buscaNorm),
   );
 
   // Acessibilidade do modal: ao abrir, foco vai para o botao primario;
@@ -483,7 +475,11 @@ export default function Listagem() {
               />
             ) : (
               CATEGORIAS.map((cat) => {
-                const doGrupo = filtrados.filter((p) => p.categoria === cat);
+                // Ordem alfabetica dentro da categoria — localeCompare("pt-BR")
+                // trata acentos corretamente (ç vem entre c e d, por exemplo).
+                const doGrupo = filtrados
+                  .filter((p) => p.categoria === cat)
+                  .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
                 if (doGrupo.length === 0) return null;
                 return (
                   <section key={cat} aria-label={cat}>
