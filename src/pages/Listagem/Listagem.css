@@ -103,6 +103,30 @@
 }
 .csm-hist__items { font-size: var(--text-sm); color: var(--color-text-secondary); }
 
+/* card-as-button: precisa "reset" para parecer card mesmo sendo <button> */
+.csm-hist--btn {
+  width: 100%;
+  text-align: left;
+}
+
+/* ---- Detalhe da compra (F11) ---- */
+.csm-hist-detalhe__resumo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.csm-hist-detalhe__meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+.csm-hist-detalhe__meta strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- Modal de confirmação ---- */
 .csm-modal {
   position: absolute;

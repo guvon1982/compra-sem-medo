@@ -79,22 +79,29 @@ describe("compraReducer", () => {
     expect(state.meta).toBe(200);
   });
 
-  it("finalizarCompra zera a compra e empilha registro no historico", () => {
+  it("finalizarCompra zera a compra e empilha registro no historico com snapshot dos itens", () => {
     const base = {
       compraAtual: [{ id: "p1", quantidade: 2 }],
       meta: 100,
       historicoCompras: [],
     };
+    const snapshot = [
+      { id: "p1", nome: "Arroz", categoria: "Mercearia", unidade: "kg", preco: 25, quantidade: 2 },
+    ];
     const state = compraReducer(base, {
       type: "finalizarCompra",
-      payload: { total: 50, itens: 2, dataAtual: new Date("2026-06-05") },
+      payload: {
+        total: 50,
+        itensDetalhados: snapshot,
+        dataAtual: new Date("2026-06-05"),
+      },
     });
 
     expect(state.compraAtual).toEqual([]);
     expect(state.historicoCompras).toHaveLength(1);
     expect(state.historicoCompras[0]).toMatchObject({
       total: 50,
-      itens: 2,
+      itens: snapshot,
       meta: 100,
     });
     expect(state.historicoCompras[0].id).toBeTruthy();
@@ -205,5 +212,27 @@ describe("validarEstadoCompra", () => {
         historicoCompras: {},
       }),
     ).toBe(false);
+  });
+
+  it("aceita historicoCompras com itens em formato legado (numero) E novo (array)", () => {
+    // Antes da feature F11 do PRD, salvavamos itens como contagem (number).
+    // Apos a feature, itens passa a ser array de snapshots. O validador deve
+    // aceitar os dois para nao quebrar storages antigos.
+    expect(
+      validarEstadoCompra({
+        compraAtual: [],
+        meta: null,
+        historicoCompras: [
+          { id: "h-1", data: "01 jun 2026", total: 50, itens: 2, meta: 100 },
+          {
+            id: "h-2",
+            data: "10 jun 2026",
+            total: 80,
+            itens: [{ id: "p1", nome: "X", categoria: "Y", unidade: "kg", preco: 40, quantidade: 2 }],
+            meta: null,
+          },
+        ],
+      }),
+    ).toBe(true);
   });
 });

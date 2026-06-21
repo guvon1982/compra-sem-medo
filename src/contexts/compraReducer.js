@@ -9,6 +9,8 @@ import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
      compraAtual:       [ { id, quantidade } ],   // itens da compra em andamento
      meta:              number | null,           // meta de gasto (opcional)
      historicoCompras:  [ { id, data, total, itens, meta } ]
+                        // itens: array de snapshots (formato novo)
+                        // ou number = contagem (formato legado, pre-feature F11)
    }
 
    Acoes suportadas:
@@ -18,11 +20,13 @@ import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
    - decrementar({ id })            -> quantidade - 1 (remove o item se chega a 0)
    - removerItem({ id })            -> tira o item da compra
    - definirMeta({ valor })         -> troca a meta de gasto
-   - finalizarCompra({ total, itens, dataAtual })
-       Cria um registro no historico com total/itens (calculados pelo
-       componente, que junta compraAtual com o catalogo) + meta atual,
-       e zera a compra. dataAtual e opcional (default = new Date()) e
-       existe principalmente para o teste poder fixar a data.
+   - finalizarCompra({ total, itensDetalhados, dataAtual })
+       Cria um registro no historico com total + snapshot completo dos itens
+       (cada um com { id, nome, categoria, unidade, preco, quantidade }) +
+       meta atual, e zera a compra. O snapshot e importante para o historico
+       continuar legivel mesmo se um produto for editado/excluido depois
+       (RN10 do PRD: historico imutavel). dataAtual e opcional (default =
+       new Date()) e existe principalmente para o teste poder fixar a data.
 
    Acoes desconhecidas devolvem o estado intacto.
    ============================================================ */
@@ -128,12 +132,12 @@ export function compraReducer(state, action) {
     }
 
     case "finalizarCompra": {
-      const { total, itens, dataAtual } = action.payload;
+      const { total, itensDetalhados, dataAtual } = action.payload;
       const registro = {
         id: `h-${Date.now()}`,
         data: formatarData(dataAtual ?? new Date()),
         total,
-        itens,
+        itens: itensDetalhados,
         meta: state.meta,
       };
       return {

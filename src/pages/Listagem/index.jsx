@@ -42,6 +42,34 @@ function montarItem(entrada, catalogo) {
   return { ...produto, quantidade: entrada.quantidade };
 }
 
+// Histórico antigo guardava `itens` como número (contagem). Versão atual
+// guarda array de snapshots. Estes helpers lidam com os dois formatos.
+function temDetalhes(h) {
+  return Array.isArray(h.itens);
+}
+function contarItens(h) {
+  if (Array.isArray(h.itens)) {
+    return h.itens.reduce((s, i) => s + i.quantidade, 0);
+  }
+  if (typeof h.itens === "number") return h.itens;
+  return 0;
+}
+
+// Foca um elemento E garante que o anel azul aparece. Browsers (Chrome/Edge)
+// escondem :focus-visible quando .focus() é chamado de dentro de um handler
+// de clique de mouse — anel ficaria invisível. Marcamos data-focus-injetado
+// para forçar o estilo (regra em base.css) e limpamos no blur.
+function focarVisivel(el) {
+  if (!el) return;
+  el.focus();
+  el.setAttribute("data-focus-injetado", "true");
+  el.addEventListener(
+    "blur",
+    () => el.removeAttribute("data-focus-injetado"),
+    { once: true },
+  );
+}
+
 // chaves validas de aba — usado para sanitizar o que vem na navegacao
 const TAB_KEYS = TABS.map((t) => t.key);
 
@@ -75,6 +103,10 @@ export default function Listagem() {
   const [editandoMeta, setEditandoMeta] = useState(false);
   const [valorMeta, setValorMeta] = useState("");
   const [erroMeta, setErroMeta] = useState(null);
+  // Detalhe de uma compra do histórico (F11): null = lista; objeto = detalhe.
+  const [compraSelecionada, setCompraSelecionada] = useState(null);
+  // ID do card que abriu o detalhe — usado para devolver o foco ao voltar (a11y).
+  const [idVoltar, setIdVoltar] = useState(null);
 
   // Itens da compra atual com nome/preco/unidade resolvidos do catalogo.
   const list = useMemo(
@@ -103,11 +135,24 @@ export default function Listagem() {
   useEffect(() => {
     if (confirmar) {
       confirmarJaAbriu.current = true;
-      confirmarBotaoRef.current?.focus();
+      focarVisivel(confirmarBotaoRef.current);
     } else if (confirmarJaAbriu.current) {
-      finalizarRef.current?.focus();
+      focarVisivel(finalizarRef.current);
     }
   }, [confirmar]);
+
+  // Acessibilidade do detalhe do histórico: ao abrir, foco no botão "Voltar";
+  // ao voltar, foco no card de origem (rastreado por id).
+  const voltarRef = useRef(null);
+  const cardsHistRef = useRef({});
+
+  useEffect(() => {
+    if (compraSelecionada) {
+      focarVisivel(voltarRef.current);
+    } else if (idVoltar) {
+      focarVisivel(cardsHistRef.current[idVoltar]);
+    }
+  }, [compraSelecionada, idVoltar]);
 
   function handleAbrirMeta() {
     setValorMeta(meta != null ? String(meta).replace(".", ",") : "");
@@ -136,7 +181,20 @@ export default function Listagem() {
     // Guardamos o resumo aqui para mostrar no alerta de sucesso ANTES de
     // disparar finalizarCompra (que zera compraAtual e portanto zera total).
     setFinalizada({ total, itens: itemCount });
-    finalizarCompra({ total, itens: itemCount });
+    // Snapshot dos itens — congela nome/preço/categoria/unidade no momento da
+    // compra. Necessário para o histórico continuar fiel mesmo se um produto
+    // for editado/excluído depois (RN10 do PRD).
+    const itensDetalhados = list.map(
+      ({ id, nome, categoria, unidade, preco, quantidade }) => ({
+        id,
+        nome,
+        categoria,
+        unidade,
+        preco,
+        quantidade,
+      }),
+    );
+    finalizarCompra({ total, itensDetalhados });
     setTab("historico");
   }
 
@@ -352,7 +410,7 @@ export default function Listagem() {
         )}
 
         {/* ---- ABA: HISTORICO ---- */}
-        {tab === "historico" && (
+        {tab === "historico" && !compraSelecionada && (
           <div className="csm-content">
             {historicoCompras.length === 0 ? (
               <EmptyState
@@ -364,9 +422,24 @@ export default function Listagem() {
               <ul className="csm-listagem__hist">
                 {historicoCompras.map((h) => {
                   const passou = h.meta != null && h.total > h.meta;
+                  const qtd = contarItens(h);
                   return (
                     <li key={h.id}>
-                      <Card padding="md" className="csm-hist">
+                      <Card
+                        as="button"
+                        interactive
+                        padding="md"
+                        type="button"
+                        className="csm-hist csm-hist--btn"
+                        ref={(el) => {
+                          if (el) cardsHistRef.current[h.id] = el;
+                        }}
+                        onClick={() => {
+                          setIdVoltar(h.id);
+                          setCompraSelecionada(h);
+                        }}
+                        aria-label={`Ver detalhes da compra de ${h.data}, total ${formatBRL(h.total)}`}
+                      >
                         <div className="csm-hist__top">
                           <span className="csm-hist__date">{h.data}</span>
                           {h.meta != null && (
@@ -378,7 +451,7 @@ export default function Listagem() {
                         <div className="csm-hist__bottom">
                           <span className="csm-hist__total">{formatBRL(h.total)}</span>
                           <span className="csm-hist__items">
-                            {h.itens} {h.itens === 1 ? "item" : "itens"}
+                            {qtd} {qtd === 1 ? "item" : "itens"}
                           </span>
                         </div>
                       </Card>
@@ -386,6 +459,76 @@ export default function Listagem() {
                   );
                 })}
               </ul>
+            )}
+          </div>
+        )}
+
+        {/* ---- ABA: HISTORICO — DETALHE DA COMPRA ---- */}
+        {tab === "historico" && compraSelecionada && (
+          <div className="csm-content">
+            <Button
+              ref={voltarRef}
+              variant="ghost"
+              size="sm"
+              onClick={() => setCompraSelecionada(null)}
+              iconLeft={<Icon name="voltar" size={18} />}
+            >
+              Voltar ao histórico
+            </Button>
+
+            <Card padding="md" className="csm-hist-detalhe__resumo">
+              <div className="csm-hist__top">
+                <span className="csm-hist__date">{compraSelecionada.data}</span>
+                {compraSelecionada.meta != null && (
+                  <span
+                    className={`csm-hist__chip ${
+                      compraSelecionada.total > compraSelecionada.meta
+                        ? "is-over"
+                        : "is-ok"
+                    }`}
+                  >
+                    {compraSelecionada.total > compraSelecionada.meta
+                      ? "Passou da meta"
+                      : "Dentro da meta"}
+                  </span>
+                )}
+              </div>
+              <div className="csm-hist__bottom">
+                <span className="csm-hist__total">{formatBRL(compraSelecionada.total)}</span>
+                <span className="csm-hist__items">
+                  {contarItens(compraSelecionada)}{" "}
+                  {contarItens(compraSelecionada) === 1 ? "item" : "itens"}
+                </span>
+              </div>
+              {compraSelecionada.meta != null && (
+                <p className="csm-hist-detalhe__meta">
+                  Meta original: <strong>{formatBRL(compraSelecionada.meta)}</strong>
+                </p>
+              )}
+            </Card>
+
+            {temDetalhes(compraSelecionada) ? (
+              <Card padding="none">
+                <ul className="csm-divided">
+                  {compraSelecionada.itens.map((item, idx) => (
+                    <li key={`${item.id}-${idx}`}>
+                      <ShoppingListItem
+                        nome={item.nome}
+                        precoUnitario={item.preco}
+                        quantidade={item.quantidade}
+                        unidade={item.unidade}
+                        readOnly
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ) : (
+              <AlertMessage variant="alert" title="Detalhes não disponíveis">
+                Esta compra foi finalizada antes da atualização que passou a
+                guardar os itens. Compras feitas a partir de agora aparecem
+                aqui com a lista completa.
+              </AlertMessage>
             )}
           </div>
         )}
