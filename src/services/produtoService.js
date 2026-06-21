@@ -13,7 +13,12 @@
    e mantem o codigo coerente com o que o professor vai corrigir.
    ============================================================ */
 
-const url = "http://localhost:3000/produtos";
+// Base da API lida de variavel de ambiente (Vite expoe tudo que comeca
+// com VITE_). Em dev, se nada for definido, cai no json-server local.
+// Em producao, defina VITE_API_URL no build apontando para a API real.
+// Ver `.env.example` na raiz do projeto.
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const url = `${BASE_URL}/produtos`;
 
 // Helper interno: monta uma mensagem de erro em portugues, curta e
 // orientada ao que o usuario pode fazer.

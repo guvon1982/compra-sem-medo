@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, it, expect, vi } from 'vitest'
 import App from './App'
@@ -80,5 +81,27 @@ describe('App', () => {
     expect(
       screen.queryByRole('button', { name: /excluir produto/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('renderiza a tela 404 em uma rota desconhecida', () => {
+    // Rota catch-all "*": qualquer URL fora das conhecidas cai na NotFound.
+    renderEmRota('/rota-que-nao-existe')
+    expect(
+      screen.getByRole('heading', { name: /página não encontrada/i, level: 1 }),
+    ).toBeInTheDocument()
+  })
+
+  it('mostra erros de validacao ao salvar o Cadastro vazio', async () => {
+    // Teste de componente do formulario com react-hook-form: submeter vazio
+    // deve disparar as mensagens de validacao de cada campo obrigatorio.
+    const user = userEvent.setup()
+    renderEmRota('/cadastro')
+
+    await user.click(screen.getByRole('button', { name: /salvar produto/i }))
+
+    expect(await screen.findByText(/pelo menos 2 letras/i)).toBeInTheDocument()
+    expect(screen.getByText(/escolha uma categoria/i)).toBeInTheDocument()
+    expect(screen.getByText(/escolha uma unidade/i)).toBeInTheDocument()
+    expect(screen.getByText(/informe o preço do produto/i)).toBeInTheDocument()
   })
 })
