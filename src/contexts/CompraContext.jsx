@@ -47,10 +47,10 @@ export function CompraProvider({ children }) {
         dispatch({ type: "removerItem", payload: { id } }),
       definirMeta: (valor) =>
         dispatch({ type: "definirMeta", payload: { valor } }),
-      finalizarCompra: ({ total, itens }) =>
+      finalizarCompra: ({ total, itensDetalhados }) =>
         dispatch({
           type: "finalizarCompra",
-          payload: { total, itens, dataAtual: new Date() },
+          payload: { total, itensDetalhados, dataAtual: new Date() },
         }),
     }),
     [state.compraAtual, state.meta, state.historicoCompras, erroStorage],

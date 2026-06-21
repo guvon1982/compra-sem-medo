@@ -73,6 +73,18 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* leitura: substitui o stepper no modo readOnly (detalhe do histórico) */
+.csm-listitem__qty-readonly {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.csm-listitem__qty-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
 /* remover: neutro em repouso, laranja-alerta no hover */
 .csm-listitem__remove {
   display: inline-flex;
