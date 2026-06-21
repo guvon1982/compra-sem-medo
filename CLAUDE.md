@@ -103,6 +103,15 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **S4 do PRD — excluir compra do historico:** nova action `excluirCompraHistorico({id})` no reducer (idempotente). UI: secao "Zona de risco" no detalhe da compra com botao danger + modal de confirmacao (mesmo padrao dos PRs #15 e #19 para foco). Apos confirmar, limpa `?compra=` da URL e volta para a lista. Disponivel tambem para compras antigas (formato legado). Atualiza a leitura pratica da RN10: registros continuam imutaveis para edicao, mas o stretch S4 libera exclusao explicita pelo usuario.
   - **Bonus — botao X na busca:** `Input` ganha prop opcional `onClear`. Quando passada E o campo tem valor, renderiza botao "X" dentro do campo (canto direito). Padrao de UX de apps mobile. Descoberto no teste manual do S4. Acessivel — aria-label e Tab funciona.
   - **Testes:** 57 -> 59 (+2 testes do reducer: exclui pelo id, ignora id inexistente).
+- **PR #29 mergeado em `develop` (2026-06-21):** docs dos PRs #26, #27, #28. Codigo nao mudou. Atualiza "Branch atual de trabalho" (4/4 limitacoes resolvidas + S2 + S4 entregues), zera a secao "Limitacoes conhecidas" e aponta release para `main` como proximo passo (depois corrigido pelo PR #31 — release requer aprovacao do professor).
+- **PR #30 FECHADO sem merge (2026-06-21):** tentativa prematura de release `develop -> main` aberta por iniciativa do assistente. Fechado apos o usuario explicar que a release so acontece apos aprovacao explicita do professor (regra desconhecida ate entao). Card "Release v1.0" voltou para o `Backlog` aguardando o gatilho. Regra documentada em destaque no inicio deste arquivo (secao "Estado atual do projeto") e na memoria do projeto (`memory/release_so_apos_aprovacao_professor.md`).
+- **PR #31 mergeado em `develop` (2026-06-21):** docs da **regra de release especifica do projeto**. Codigo nao mudou. Documenta no CLAUDE.md que a release `develop -> main` requer aprovacao explicita do professor — diverge do workflow padrao do CLAUDE global. Tambem salva a regra como memoria do projeto para sessoes futuras carregarem automaticamente.
+- **PR #32 mergeado em `develop` (2026-06-21):** **ultimo gap real do PRD (RN2)** descoberto na auditoria pre-entrega + 2 fixes de UX no catalogo.
+  - **RN2 do PRD — nome unico no catalogo:** novo helper puro `src/utils/catalogo.js` com `temNomeDuplicado(nome, produtos, idAtual)` que compara case-insensitive, ignorando espacos nas pontas E acentos (leitura estrita PT-BR: "Acucar Uniao" e "Açúcar União" sao o mesmo produto). Em modo edicao, ignora o proprio produto (compara IDs). `Cadastro.validar()` chama o helper e mostra erro inline. Antes do PR, era possivel cadastrar "Arroz Tio João 5kg" duplicado com qualquer combinacao de caixa/acento/espaco.
+  - **Helper `normalizar()` compartilhado:** extraido do `normalizarBusca` local da Listagem (PR #27) para o novo `src/utils/catalogo.js`. Agora um unico lugar controla o que conta como "igual" — usado tanto pela busca textual quanto pela validacao de unicidade do `temNomeDuplicado`. Listagem refatorada para importar o helper, eliminando duplicacao (regra DRY do CLAUDE.md).
+  - **Ordem alfabetica no catalogo:** aba Catalogo da Listagem ordena cada grupo de categoria com `.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))`. O `localeCompare("pt-BR")` trata acentos corretamente (ç entre c e d, á entre a e b). Antes, produtos novos iam para o fim da lista (ordem de insercao da API).
+  - **Testes:** 59 -> 71 (+12: 7 do helper `temNomeDuplicado`/`normalizar`, + ajustes nos existentes).
+  - **Licao aprendida (importante para futuros projetos):** auditoria pre-entrega contra RN1-RN10 do PRD revelou que a RN2 nunca havia sido implementada — o codigo passava em todas as outras validacoes mas violava silenciosamente uma regra de negocio. Boa pratica: **antes de declarar "pronto", percorrer EXPLICITAMENTE cada regra do PRD e cada criterio do avaliador**, checando se ha codigo real cumprindo aquilo. Lint/testes/build verdes nao garantem conformidade — eles garantem que o codigo escrito funciona, mas nao que tudo que devia ser escrito foi escrito.
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
@@ -110,17 +119,21 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 ### Proxima fase
 
-**Polimento completo e 2 stretch goals entregues (2026-06-21, PRs #26, #27, #28).** Estado do projeto:
+**Projeto consolidado em 2026-06-21 — pronto para apresentacao do professor.** Estado final:
 
 - ✅ MVP F1-F11 do PRD
-- ✅ 4 de 4 limitacoes conhecidas resolvidas
+- ✅ **RN1-RN10 todas implementadas** (RN2 era o ultimo gap, fechado no PR #32)
+- ✅ 4 de 4 limitacoes conhecidas resolvidas (PRs #26, #27)
 - ✅ Stretch goals S2 (editar produto, PR #17) e S4 (excluir compra, PR #28)
+- ✅ **71 testes automatizados verdes** (lint + test + build)
+- ✅ 5 criterios da rubrica do professor cobertos (organizacao, tecnica, validacao, responsividade, versionamento)
+- ✅ 31 PRs mergeados na `develop` com historico narrativo (sem squash gigante — CS7 do PRD atendido)
 
-**Proximo passo planejado:** release `develop` -> `main`. Promove tudo (MVP + polimento + stretch) para a branch oficial de release. A `main` continua representando "versao pronta para uso" conforme regra do CLAUDE global.
+**Proximo passo:** **aguardar aprovacao do professor** (ele avalia a `develop`). Quando o usuario disser explicitamente "professor aprovou, pode promover", abrimos o PR `develop -> main`. **NAO fazer por iniciativa propria** — ver regra de release no topo deste arquivo.
 
 **Roadmap pos-release** (caso o usuario queira continuar evoluindo apos a entrega):
 - **S1 do PRD** — historico de precos por produto (derivar do `historicoCompras`, que ja tem snapshot completo desde PR #24). Tela ou secao nova, ~80-120 linhas.
-- **S3 do PRD** — filtrar/buscar produto. Parcialmente coberto pela busca textual no Catalogo (com tolerancia a acentos no PR #27). Filtro por categoria seria a extensao natural.
+- **S3 do PRD** — filtro por categoria no Catalogo (busca textual ja existe com tolerancia a acentos no PR #27). Filtro por categoria seria a extensao natural.
 - **Versao 1.5 do PRD** — multiplas listas simultaneas nomeadas (ver secao "Roadmap pos-entrega" do PRD).
 
 **Confirmar com o usuario antes de codar.**
@@ -187,6 +200,8 @@ Todas as decisoes abaixo ja estao validadas com o usuario e/ou alinhadas ao exer
 - Estado global em `src/contexts/` com Context + reducer; estado local de componente continua em `useState`.
 - Persistencia em `localStorage` deve ser feita por meio de hooks/utilitarios proprios em `src/storage/`, nao espalhada nos componentes.
 - **Foco programatico apos clique de mouse:** quando chamar `.focus()` de dentro de um handler de clique (ex.: devolver foco ao card de origem ao fechar um detalhe/modal), usar o helper `focarVisivel` (`Listagem/index.jsx`) que adiciona `data-focus-injetado` no elemento. A regra em `src/styles/base.css` faz com que o anel azul do `:focus-visible` apareca nesse caso — sem o atributo, Chrome/Edge escondem o anel porque tratam o foco como "originado de mouse". Hoje o helper esta inline na Listagem; se outra pagina precisar, vale extrair para `src/utils/`.
+- **Comparacao de strings de produto (busca + unicidade):** usar `normalizar(s)` exportado de `src/utils/catalogo.js` — faz NFD + remove acentos + baixa caixa + trim. Garante que busca, unicidade do nome (RN2) e qualquer comparacao futura usem o MESMO criterio. Se a busca encontra dois itens iguais, a validacao de unicidade tambem detecta — sem isso, comportamentos divergem. Usado em `temNomeDuplicado` (mesma file) e na busca do catalogo na Listagem.
+- **Ordenacao de strings PT-BR:** usar `array.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))` em vez de comparacao default (que falha com acentos — "Açucar" iria depois de "Z" em ASCII puro). Aplicado na aba Catalogo da Listagem; se aparecer outra lista de strings em PT-BR no projeto, usar o mesmo padrao.
 
 ## Boas praticas obrigatorias
 
