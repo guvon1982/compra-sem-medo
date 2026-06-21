@@ -73,6 +73,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* indisponivel: item presente na compra mas sem dados no catalogo (API
+   offline ou produto excluido). Nome em italico cinza, subtotal e preco
+   substituidos por placeholders, com transparencia para sinalizar estado
+   diferente sem esconder o item da lista. */
+.csm-listitem--indisponivel .csm-listitem__name {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+.csm-listitem__subtotal--unknown,
+.csm-listitem__unit--unknown {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
 /* leitura: substitui o stepper no modo readOnly (detalhe do histórico) */
 .csm-listitem__qty-readonly {
   font-size: var(--text-body);

@@ -10,6 +10,11 @@ import { formatBRL } from "../../utils/currency";
 
    readOnly = true esconde stepper e remover (usado no detalhe
    de compra do histórico, que é imutável por RN10 do PRD).
+
+   indisponivel = true marca o item como "produto não está no
+   catálogo agora" (API offline). Subtotal vira "—", preço
+   unitário some, e o item recebe estilo apagado. Stepper e
+   remover continuam funcionais para o usuário poder limpar.
    ============================================================ */
 
 export default function ShoppingListItem({
@@ -21,14 +26,25 @@ export default function ShoppingListItem({
   onDecrement,
   onRemove,
   readOnly = false,
+  indisponivel = false,
 }) {
   const subtotal = precoUnitario * quantidade;
+  const classes = [
+    "csm-listitem",
+    indisponivel ? "csm-listitem--indisponivel" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <article className="csm-listitem">
+    <article className={classes}>
       <div className="csm-listitem__head">
         <p className="csm-listitem__name">{nome}</p>
-        <span className="csm-listitem__subtotal">{formatBRL(subtotal)}</span>
+        {indisponivel ? (
+          <span className="csm-listitem__subtotal csm-listitem__subtotal--unknown" aria-label="Subtotal indisponível">—</span>
+        ) : (
+          <span className="csm-listitem__subtotal">{formatBRL(subtotal)}</span>
+        )}
       </div>
 
       <div className="csm-listitem__controls">
@@ -58,9 +74,15 @@ export default function ShoppingListItem({
           </div>
         )}
 
-        <span className="csm-listitem__unit">
-          {formatBRL(precoUnitario)} <span className="csm-listitem__unit-label">/ {unidade}</span>
-        </span>
+        {indisponivel ? (
+          <span className="csm-listitem__unit csm-listitem__unit--unknown">
+            Sem informações do catálogo
+          </span>
+        ) : (
+          <span className="csm-listitem__unit">
+            {formatBRL(precoUnitario)} <span className="csm-listitem__unit-label">/ {unidade}</span>
+          </span>
+        )}
 
         {!readOnly && (
           <button
