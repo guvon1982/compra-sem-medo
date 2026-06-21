@@ -8,7 +8,7 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Repositorio no GitHub:** https://github.com/guvon1982/compra-sem-medo (publico).
 **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 (publico). Colunas: `Backlog` → `To do` → `In progress` → `In review` → `Done`. Cards de feature linkam para os PRs reais. Criado em 2026-06-11 com 12 PRs retroativos em `Done` + 2 limitacoes conhecidas em `Backlog` + 1 placeholder em `To do`.
-**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10; Kanban registrado via PR #22 em 2026-06-11). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
+**Branch padrao:** `develop`. **Branch atual de trabalho:** sem feature ativa (CRUD de produtos completo via PRs #17 + #19 em 2026-06-10; Kanban registrado via PR #22 em 2026-06-11; **F11 detalhes do historico completo via PR #24 em 2026-06-20 — MVP F1-F11 do PRD fechado**). Proxima feature: ainda nao definida — ver "Proxima fase" abaixo.
 
 ### O que ja foi feito
 
@@ -81,19 +81,29 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
   - **Kanban populado retroativamente:** 12 PRs de feature/infra em Done (1, 2, 3, 4, 6, 8, 11, 13, 14, 15, 17, 19), 2 limitacoes conhecidas em Backlog, 1 placeholder em To do. Views configuradas: **Kanban** (Board layout) e **Tabela** (Table layout). Board e publico.
   - **Primeiro card a percorrer o workflow novo:** o proprio PR #22 (criado em Backlog → linkado em In review → movido para Done apos merge).
 - **PR #23 mergeado em `develop` (2026-06-12):** docs dos comandos do Kanban. Codigo nao mudou. Adiciona subsecao "Comandos do Kanban (GitHub Projects)" em "Comandos do projeto" com IDs do board travados e receitas de CLI para nao re-descobrir via API em cada sessao nova. Documenta o workflow obrigatorio por feature passo a passo.
+- **PR #24 mergeado em `develop` (2026-06-20):** F11 do PRD — **detalhes da compra no historico**. Fecha o ultimo gap do MVP F1-F11.
+  - **Modelo de dados migrado:** `compraReducer.finalizarCompra` agora salva `itens` como **array de snapshots** (`{ id, nome, categoria, unidade, preco, quantidade }`) em vez de apenas a contagem. Justificativa: RN10 do PRD (historico imutavel) — snapshot garante registro fiel mesmo apos editar/excluir produto do catalogo.
+  - **Retrocompat com formato legado:** `validarEstadoCompra` aceita `itens` como `number` (formato antigo) ou `array` (formato novo) — nenhum dado existente perdido nem dispara aviso de "storage corrompido". Na UI, helpers `temDetalhes` e `contarItens` em `Listagem/index.jsx` lidam com os dois formatos; compra antiga abre detalhe com `AlertMessage` "Detalhes nao disponiveis".
+  - **UI inline na propria aba Historico** (sem rota nova, sem modal). Cards do historico viraram clicaveis (`Card as="button" interactive`). Decisao alinhada ao mobile-first: modal de lista longa ficaria apertado.
+  - **`ShoppingListItem` ganha prop `readOnly`** (variante via prop conforme item 5 das Boas Praticas). Em readOnly, esconde stepper +/− e botao remover; mostra "Qtd: N". Usado no detalhe do historico para refletir RN10 (historico imutavel).
+  - **Novo padrao de a11y `data-focus-injetado` (ver "Padroes de codigo" abaixo):** introduzido para resolver bug onde `.focus()` chamado de dentro de handler de clique de mouse nao mostrava o anel azul (`:focus-visible` so dispara em interacao de teclado). Aplicado no detalhe do historico e tambem retroativamente no modal de finalizar compra para consistencia.
+  - **Testes:** 56 -> 57 (teste de `finalizarCompra` reescrito para novo shape; novo teste de retrocompat do validador aceitando ambos formatos).
+  - **Validacao manual:** 20 passos confirmados — caminho feliz com nova compra, retrocompat com compra antiga, estados de borda (historico vazio, sem meta), nao regressoes do CRUD.
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
 - **Compra orfa quando a API esta offline** — identificada no teste manual do PR #13 (2026-06-10). Quando o `json-server` esta fora do ar, a tela `/listagem` aba "Minha compra" mostra "R$ 0,00 / Sua lista esta vazia" mesmo havendo itens persistidos no localStorage. Causa: a Listagem cruza `compraAtual` (IDs) com a lista `produtos` do CatalogoContext via `montarItem`; sem produtos carregados, `.filter(Boolean)` esvazia. **Dados nao sao perdidos** — assim que a API volta, a compra reaparece intacta. Possiveis correcoes: (a) cachear no localStorage um snapshot dos produtos referenciados, (b) mostrar item "Produto indisponivel" com aviso quando o catalogo faltar.
 - **Aviso de storage corrompido so na Home** — identificada no PR #14 (2026-06-10). Se o usuario entrar por deep link em `/listagem` com o storage corrompido, perde o aviso "Sua compra anterior nao pode ser recuperada". Cenario raro (rota canonica e a Home), mas vale resolver promovendo o aviso para um componente que monta em qualquer rota (talvez no proprio Provider ou no layout do App).
+- **Finalizar compra nao zera a meta (viola RN9 do PRD)** — identificada no PR #24 (2026-06-20). RN9 do PRD diz "zera `compraAtual` E `meta`", mas o reducer (`compraReducer.js`, case `finalizarCompra`) zera so `compraAtual`. Resultado: a meta antiga continua aplicada na compra seguinte como se fosse intencional. Fix simples: adicionar `meta: null` no return do case. Bug pre-existente, nao introduzido pelo PR #24 — so foi encontrado durante o teste manual dele.
+- **Aba ativa e detalhe do historico nao sobrevivem ao F5** — identificada no PR #24 (2026-06-20). Hoje a aba ativa de `/listagem` (compra/catalogo/historico) e a compra selecionada no detalhe moram em state local — F5 reseta para a aba "Minha compra" e o detalhe se perde. Proposta: usar `useSearchParams` do react-router para refletir o estado na URL (`?aba=historico&compra=h-XXX`). Beneficios: F5 mantem usuario onde estava, habilita deep-linking, botoes voltar/avancar do browser navegam entre abas.
 
 ### Proxima fase
 
-**CRUD do catalogo fechado (2026-06-10, PRs #17 + #19).** Sem proxima feature decidida ainda. Opcoes para conversar com o usuario:
+**MVP F1-F11 do PRD fechado (2026-06-20, PR #24).** Sem proxima feature decidida ainda. Opcoes para conversar com o usuario:
 
-- **Resolver as 2 limitacoes conhecidas** (compra orfa sem API, aviso de storage so na Home). Sao bugs pequenos com correcoes pontuais.
-- **Features de F1-F11 do PRD que ainda nao foram cobertas explicitamente** — checar `docs/PRD.md` para identificar se alguma ficou pendente.
-- **Stretch goals (S1-S?)** — caso o MVP esteja completo e haja tempo restante.
+- **PR de polimento juntando as 4 limitacoes conhecidas acima** — caminho natural, todas sao bugs pequenos com correcao pontual. Sugestao de ordem: meta-reset (RN9, ~1 linha) → aviso de storage em qualquer rota → URL persistente da aba/detalhe → compra orfa sem API.
+- **Stretch goals (S1 a S4 do PRD):** S1 historico de precos por produto, S2 editar produto (ja feito no PR #17!), S3 filtrar/buscar produto, S4 excluir compra do historico. Avaliar quais ainda fazem sentido apos PRs ja entregues.
+- **Promover ja para `main`** — o projeto ja esta pronto para release. Decisao do usuario.
 
 **Confirmar com o usuario antes de codar.**
 
@@ -129,9 +139,9 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 ### Roteiro restante
 
 - **Possiveis proximos passos** (a confirmar com o usuario):
-  - Resolver as 2 limitacoes conhecidas pendentes (compra orfa sem API, aviso de storage so na Home).
-  - Features de F1-F11 do `docs/PRD.md` que ainda nao tenham sido cobertas.
-  - Stretch goals.
+  - PR de polimento juntando as 4 limitacoes conhecidas listadas acima.
+  - Stretch goals do PRD (S1, S3, S4 — S2 ja foi feito no PR #17).
+  - Promover para `main` (release).
 
 Antes de propor codigo novo, ler `docs/PRD.md` (escopo, RN1-RN10, F1-F11), `docs/design-system-reference.md` e validar contra a imagem `docs/CompraSemMedo_DesignSystem_Aprovacao.png`.
 
@@ -148,6 +158,7 @@ Todas as decisoes abaixo ja estao validadas com o usuario e/ou alinhadas ao exer
 - **json-server** como API REST para o catalogo de produtos
 - **localStorage** para compra atual, meta e historico de compras finalizadas
 - **GitHub Projects** (Kanban) — exigencia do enunciado. Board ativo em https://github.com/users/guvon1982/projects/2. **Workflow obrigatorio:** toda feature nova deve ter um card que percorre `Backlog` → `To do` (no inicio da feature) → `In progress` (quando comecar a codar) → `In review` (quando o PR for aberto) → `Done` (apos merge em `develop`). Cards de feature linkam o PR real via `gh project item-add`. Cards de roadmap/limitacao ficam como drafts.
+- **Sem GitHub Milestones nem GitHub Issues** (avaliados e descartados em 2026-06-20). Milestone faz sentido em time grande com varias releases e muitas issues simultaneas — para projeto individual com fluxo "1 feature = 1 branch = 1 PR" e Kanban ja dando visibilidade, vira manutencao extra sem ganho. Enunciado pede Kanban (CS6), nao menciona Milestone. **Fluxo de tracking unico: Kanban + PR + commits.**
 
 ## Padroes de codigo (alinhados ao exercicio do professor)
 
@@ -156,6 +167,7 @@ Todas as decisoes abaixo ja estao validadas com o usuario e/ou alinhadas ao exer
 - `BrowserRouter` em `main.jsx`; `<Routes>` em `App.jsx`.
 - Estado global em `src/contexts/` com Context + reducer; estado local de componente continua em `useState`.
 - Persistencia em `localStorage` deve ser feita por meio de hooks/utilitarios proprios em `src/storage/`, nao espalhada nos componentes.
+- **Foco programatico apos clique de mouse:** quando chamar `.focus()` de dentro de um handler de clique (ex.: devolver foco ao card de origem ao fechar um detalhe/modal), usar o helper `focarVisivel` (`Listagem/index.jsx`) que adiciona `data-focus-injetado` no elemento. A regra em `src/styles/base.css` faz com que o anel azul do `:focus-visible` apareca nesse caso — sem o atributo, Chrome/Edge escondem o anel porque tratam o foco como "originado de mouse". Hoje o helper esta inline na Listagem; se outra pagina precisar, vale extrair para `src/utils/`.
 
 ## Boas praticas obrigatorias
 
