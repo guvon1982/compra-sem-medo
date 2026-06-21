@@ -140,10 +140,14 @@ export function compraReducer(state, action) {
         itens: itensDetalhados,
         meta: state.meta,
       };
+      // RN9 do PRD: ao finalizar, zera compraAtual E meta. A meta do
+      // registro acima ja salvou o valor que estava ativo — agora a
+      // nova compra comeca sem meta, como uma ida ao mercado nova.
       return {
         ...state,
         historicoCompras: [registro, ...state.historicoCompras],
         compraAtual: [],
+        meta: null,
       };
     }
 

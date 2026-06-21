@@ -1,0 +1,17 @@
+/* ============================================================
+   Layout.css — banner global ABSOLUTO no topo do #root. Fica
+   sobre o Header da tela sem alterar o flex layout do shell
+   (preservando .csm-screen com height: 100% original). O user
+   fecha pelo X do AlertMessage e a tela volta limpa.
+   ============================================================ */
+
+.csm-layout__banner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
