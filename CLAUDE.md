@@ -12,6 +12,8 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 
 **Polimento pos-auditoria externa (2026-06-21, PRs #35-#37 + issues #38-#42):** auditoria completa do projeto contra o enunciado oficial resultou em 10 melhorias aplicadas em 3 blocos — react-hook-form de fato adotado no Cadastro (antes so declarado), URL da API via `VITE_API_URL`, rota 404, metadata Open Graph, `docs/SDD.md` criado, screenshots + nota do Lighthouse no README, e 5 issues de rastreabilidade requisito->PR. **73 testes verdes.** Detalhes nas entradas dos PRs abaixo.
 
+**Proxima grande fase = v2.0 (producao), combinada em 2026-06-22.** Depois da entrega academica, o usuario vai retomar para colocar o app em producao com usuarios reais. **Decisao de 2026-06-22: NAO publicar agora** — a entrega so exige execucao local (ja atendida; ver "Rodar em outra maquina" no README). Todo o contexto de producao/deploy esta consolidado em **"Roadmap v2.0 — producao"** (dentro de "Proxima fase") para a proxima sessao retomar sem re-derivar.
+
 **REGRA ESPECIFICA DESTE PROJETO — release `develop -> main`:** diferente do workflow padrao do CLAUDE global (onde `main` recebe `develop` quando o usuario decide), aqui o gatilho e **externo**: o professor avalia a `develop` e, **somente apos a aprovacao explicita do usuario** ("o professor aprovou, pode promover"), a release acontece. Antes disso, **NAO abrir PR de `develop -> main` por iniciativa propria**. PR #30 foi aberto prematuramente em 2026-06-21 e fechado pelo mesmo motivo — ja existe um card "Release v1.0 — promove develop para main" no `Backlog` do Kanban esperando o gatilho.
 
 ### O que ja foi feito
@@ -121,6 +123,7 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 - **PR #37 mergeado em `develop` (2026-06-21):** documentacao. (a) **`docs/SDD.md` criado** — arquitetura em camadas, diagramas mermaid (arquitetura + fluxo de dados), estrutura de pastas, roteamento, modelo de dados, contrato da API REST e decisoes tecnicas. (b) **README** atualizado: secao Telas com 5 screenshots reais (em `docs/screenshots/`), secao Variaveis de ambiente, secao Lighthouse com notas do **build** (Performance 70, Accessibility 92, Best Practices 100, SEO 91 — modo mobile via `npm run preview`), estrutura de pastas real (sem "(a criar)") e link para o SDD.
 - **Issues #38-#42 criadas e fechadas em 2026-06-21 (item 9 da auditoria):** mapa de **rastreabilidade requisito->PR** (uma issue por requisito funcional do enunciado, linkando os PRs que entregaram). Criadas retroativamente (a data deixa isso explicito); valor e servir de trace de cobertura, nao de "planejamento previo". Ficam na aba Issues, **fora do Kanban** para nao duplicar os cards de PR.
 - **PR #44 mergeado em `develop` (2026-06-21):** **estado inicial vazio.** Um usuario novo (localStorage vazio) agora comeca com compra vazia, sem meta e sem historico — antes vinha pre-populado com dados de demonstracao do `mock.js` (uma compra em andamento + meta R$60 + 3 compras fake no historico), o que parecia bug na 1a abertura. Mudanca: `estadoInicialCompra` (em `compraReducer.js`) passou a `{ compraAtual: [], meta: null, historicoCompras: [] }`; removidas as constantes mortas `COMPRA_INICIAL`, `META_INICIAL` e `HISTORICO` de `data/mock.js` (so `CATEGORIAS`, `UNIDADES`, `ICONE_CATEGORIA` e `PRODUTOS` permanecem). Nenhum teste dependia do conteudo da seed (usavam `estadoInicialCompra` por referencia/spread); `validarEstadoCompra` aceita o estado vazio. 73 testes seguiram verdes.
+- **PR #45 mergeado em `develop` (2026-06-22):** docs(readme). Adiciona a secao "Rodar em outra maquina (do zero)" no README (clone -> `npm install` -> subir API **e** app). Destaca o gotcha de o catalogo precisar do `json-server` (rodar so o Vite deixa o catalogo vazio) e explica o que viaja no clone (catalogo via `db.json` versionado) vs o que comeca vazio (compra/meta/historico no localStorage da maquina). Codigo nao mudou.
 
 ### Limitacoes conhecidas (a serem resolvidas em fases futuras)
 
@@ -148,6 +151,27 @@ Projeto final de Front-End (IESB, 5o semestre). Desenvolvimento **individual** p
 - **v2.0 — editar quantidade digitando:** na compra (`ShoppingListItem`), hoje a quantidade so muda pelos botoes +/-. Para quantidades grandes (ex.: 12 unidades) isso e tedioso. Ideia: permitir digitar a quantidade num campo numerico (com validacao: inteiro > 0; ao zerar/esvaziar, remover o item ou reverter). Mexe em `ShoppingListItem` (variante editavel via prop), na Listagem (handler) e no `compraReducer` (acao tipo `definirQuantidade({ id, quantidade })`). Levantado na auditoria de 2026-06-21; adiado para a v2.0 a pedido do usuario.
 
 **Confirmar com o usuario antes de codar.**
+
+### Roadmap v2.0 — producao (combinado em 2026-06-22)
+
+O usuario confirmou que a **proxima grande fase e colocar o app em producao** (usuarios reais), como **versao 2.0**, apos a entrega academica. Contexto levantado na auditoria de 2026-06-21 e na conversa de 2026-06-22, consolidado aqui para nao re-derivar:
+
+**Pre-requisitos de producao (o que falta para ser seguro e funcional fora do localhost):**
+- **Backend real + banco de dados** no lugar do `json-server` (que e ferramenta de dev: arquivo unico, sem concorrencia, sem durabilidade, **sem autenticacao**). Opcoes: Node/Express, Supabase, Firebase.
+- **Autenticacao e autorizacao** — hoje nao existe; qualquer um faz qualquer operacao.
+- **Validacao/sanitizacao no servidor** — hoje a validacao so existe no front (burlavel).
+- **HTTPS + headers de seguranca** (CSP etc.) no deploy.
+- ✅ **Groundwork ja feito:** URL da API via `VITE_API_URL` (PR #36) — basta apontar para a API real no build, sem mexer no codigo.
+- Referencia: a auditoria estimou seguranca ~25/100 para producao real vs ~90/100 para o escopo academico.
+
+**Deploy (como publicar) — analise de 2026-06-22:** o front e estatico (build do Vite) e pode ir para **GitHub Pages** ou **Vercel/Netlify**. PORE M, **GitHub Pages sozinho NAO basta**: ele so serve estatico, entao o catalogo (que depende da API) quebraria ("Sem conexao com a API"). O caminho que funciona de verdade e **frontend hospedado + API hospedada** (ex.: Render/Railway no free tier — atencao que free tiers "dormem" e demoram a acordar). Detalhe tecnico do Pages: a app abriria em `/<repo>/`, exigindo `base` no Vite + basename no react-router + truque de 404.html para o roteamento de SPA (deep link / F5). **Vercel/Netlify resolvem o SPA routing sozinhos** (caminho mais facil). Eu (assistente) faco toda a parte de codigo/config; **criar conta nos servicos externos e com o usuario**.
+
+**Features candidatas da v2.0:**
+- **Editar quantidade digitando** (detalhado no "Roadmap pos-release" acima).
+- Reavaliar os demais pontos de UX da auditoria (ex.: remover item da compra com "desfazer"; focus trap nos modais).
+- Stretch goals **S1** (historico de precos), **S3** (filtro por categoria) e **v1.5** (multiplas listas nomeadas) do PRD seguem validos como evolucao.
+
+**Lembrete de release:** a promocao `develop -> main` (entrega academica) continua dependendo da **aprovacao explicita do professor** — ver regra no topo deste arquivo. A v2.0 vem depois disso.
 
 ### Plano CRUD de produtos (executado em 2026-06-10)
 
