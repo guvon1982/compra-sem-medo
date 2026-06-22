@@ -1,5 +1,3 @@
-import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
-
 /* ============================================================
    compraReducer — logica pura da compra ativa, da meta de
    gastos e do historico de compras finalizadas.
@@ -35,10 +33,14 @@ import { COMPRA_INICIAL, META_INICIAL, HISTORICO } from "../data/mock";
    Acoes desconhecidas devolvem o estado intacto.
    ============================================================ */
 
+// Estado inicial de um usuario novo (localStorage vazio): comeca ZERADO —
+// sem compra em andamento, sem meta e sem historico. (Ate 2026-06-21 vinha
+// pre-populado com dados de demonstracao do mock; trocamos para vazio porque
+// abrir o app ja com "compra em andamento" no primeiro acesso parecia bug.)
 export const estadoInicialCompra = {
-  compraAtual: COMPRA_INICIAL,
-  meta: META_INICIAL,
-  historicoCompras: HISTORICO,
+  compraAtual: [],
+  meta: null,
+  historicoCompras: [],
 };
 
 /* ============================================================

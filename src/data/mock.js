@@ -1,7 +1,7 @@
 /* ============================================================
-   mock.js — dados fake (apenas para o protótipo visual).
-   Produtos brasileiros reais, categorias e histórico.
-   Nenhuma lógica de negócio aqui — só dados.
+   mock.js — constantes de apoio da UI (categorias, unidades e
+   ícone por categoria). Nenhuma lógica de negócio aqui — só dados.
+   O catálogo de produtos vem da API (json-server), não daqui.
    ============================================================ */
 
 export const CATEGORIAS = ["Alimentos", "Bebidas", "Higiene", "Limpeza"];
@@ -30,20 +30,4 @@ export const PRODUTOS = [
   { id: "p8", nome: "Sabão em pó OMO 1,6kg", categoria: "Limpeza", unidade: "1,6kg", preco: 22.9 },
   { id: "p9", nome: "Detergente Ypê 500ml", categoria: "Limpeza", unidade: "500ml", preco: 2.79 },
   { id: "p10", nome: "Papel higiênico Neve 12 rolos", categoria: "Higiene", unidade: "12 rolos", preco: 18.9 },
-];
-
-/* compra atual inicial (já com alguns itens p/ demonstrar o herói) */
-export const COMPRA_INICIAL = [
-  { id: "p1", quantidade: 1 },
-  { id: "p4", quantidade: 2 },
-  { id: "p6", quantidade: 1 },
-];
-
-export const META_INICIAL = 60;
-
-/* histórico de compras anteriores */
-export const HISTORICO = [
-  { id: "h1", data: "28 mai 2026", total: 142.3, itens: 12, meta: 150 },
-  { id: "h2", data: "21 mai 2026", total: 187.5, itens: 15, meta: 160 },
-  { id: "h3", data: "14 mai 2026", total: 96.8, itens: 8, meta: null },
 ];
