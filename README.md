@@ -39,6 +39,59 @@ Detalhes completos em [`docs/PRD.md`](docs/PRD.md).
 - **Docker** + **Docker Compose** para o ambiente de desenvolvimento
 - CSS externo com tokens do design system aprovado
 
+## Rodar em outra maquina (do zero)
+
+Cenario: voce chegou numa maquina nova (ex.: o PC da faculdade) e quer rodar o
+projeto. Pre-requisitos: **Git** + (**Docker Desktop** OU **Node 22+**).
+
+> ⚠️ **Nao copie a pasta por pen drive.** A `node_modules` tem binarios
+> compilados para a maquina de origem e nao funcionam em outra. Sempre **clone
+> e instale do zero**.
+
+### 1. Clonar o repositorio
+
+```bash
+git clone https://github.com/guvon1982/compra-sem-medo.git
+cd compra-sem-medo
+```
+
+### 2. Instalar as dependencias
+
+```bash
+npm install
+```
+
+### 3. Subir a API **e** o app (os dois!)
+
+> 🔑 **O catalogo precisa da API (`json-server`).** Se voce rodar so o app, o
+> catalogo aparece vazio com "Sem conexao com a API". Tem que ter a API no ar
+> tambem.
+
+**Com Docker (recomendado):**
+
+```bash
+docker compose up -d                    # sobe a API (json-server, porta 3000) + o container do app
+docker compose exec -d app npm run dev  # inicia o Vite (porta 5173)
+```
+
+**Sem Docker:** abra **dois terminais** na pasta do projeto:
+
+```bash
+npm run api    # terminal 1 — API (json-server) na porta 3000
+npm run dev    # terminal 2 — app (Vite) na porta 5173
+```
+
+### 4. Abrir no navegador
+
+Acesse **http://localhost:5173**. O catalogo aparece com os 10 produtos do seed
+(`db.json`, versionado no git).
+
+> **O que vem junto e o que nao vem:** os 10 produtos do catalogo vem no clone
+> (estao no `db.json`). Ja **compra, meta e historico comecam vazios** numa
+> maquina nova — eles ficam no `localStorage` do navegador daquela maquina, nao
+> no codigo. (Otimo para apresentar: comece limpo e demonstre cadastrando/
+> comprando ao vivo.)
+
 ## Como rodar com Docker (recomendado)
 
 Pre-requisitos:
