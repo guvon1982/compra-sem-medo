@@ -17,6 +17,16 @@ Aplicacao web mobile-first em React para auxiliar pessoas a controlar gastos dur
 
 Detalhes completos em [`docs/PRD.md`](docs/PRD.md).
 
+## Telas
+
+| Início | Minha compra | Catálogo |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/home.png" width="230" alt="Tela inicial" /> | <img src="docs/screenshots/listagem-compra.png" width="230" alt="Minha compra" /> | <img src="docs/screenshots/listagem-catalogo.png" width="230" alt="Catálogo" /> |
+
+| Histórico | Cadastro |
+| :---: | :---: |
+| <img src="docs/screenshots/historico.png" width="230" alt="Histórico" /> | <img src="docs/screenshots/cadastro.png" width="230" alt="Cadastro de produto" /> |
+
 ## Stack
 
 - **React 19** + **Vite 8**
@@ -78,35 +88,77 @@ npm install
 npm run dev
 ```
 
+## Variaveis de ambiente
+
+O front le variaveis com prefixo `VITE_` (padrao do Vite). A unica usada hoje:
+
+| Variavel       | Padrao                  | Para que serve                           |
+| -------------- | ----------------------- | ---------------------------------------- |
+| `VITE_API_URL` | `http://localhost:3000` | URL base da API REST (sem `/` no final). |
+
+Em desenvolvimento nao e preciso configurar nada — o codigo usa o `json-server`
+local por padrao. Para apontar para outra API (ex.: em producao), copie
+[`.env.example`](.env.example) para `.env` e ajuste o valor.
+
 ## Scripts disponiveis
 
-| Comando | O que faz |
-|---|---|
-| `npm run dev` | Servidor de desenvolvimento (HMR ativo) |
-| `npm run build` | Gera o build de producao em `dist/` |
-| `npm run preview` | Serve o build estaticamente para validacao |
-| `npm run lint` | Verifica o codigo com ESLint |
-| `npm test` | Roda testes em modo watch |
-| `npm run test:run` | Roda testes uma vez e sai (modo CI) |
-| `npm run test:ui` | Abre a interface grafica do Vitest |
-| `npm run test:coverage` | Roda testes com relatorio de cobertura |
+| Comando                 | O que faz                                  |
+| ----------------------- | ------------------------------------------ |
+| `npm run dev`           | Servidor de desenvolvimento (HMR ativo)    |
+| `npm run build`         | Gera o build de producao em `dist/`        |
+| `npm run preview`       | Serve o build estaticamente para validacao |
+| `npm run lint`          | Verifica o codigo com ESLint               |
+| `npm test`              | Roda testes em modo watch                  |
+| `npm run test:run`      | Roda testes uma vez e sai (modo CI)        |
+| `npm run test:ui`       | Abre a interface grafica do Vitest         |
+| `npm run test:coverage` | Roda testes com relatorio de cobertura     |
 
 ## Estrutura do projeto
 
 ```
 .
-├── docs/                  # PRD, design system, referencias visuais
+├── docs/                  # PRD, SDD, design system, referencias visuais
 ├── public/                # Assets estaticos servidos sem processamento
 ├── src/
-│   ├── assets/            # Imagens importadas pelo codigo
+│   ├── components/        # Componentes reutilizaveis do Design System
+│   ├── pages/             # Uma pasta por rota (Home, Cadastro, Listagem, NotFound)
+│   ├── contexts/          # Estado global (Context + reducers puros)
+│   ├── services/          # Camada de acesso a API REST (produtoService)
+│   ├── storage/           # Acesso isolado ao localStorage
+│   ├── utils/             # Funcoes puras (currency, catalogo)
+│   ├── data/              # Constantes e mock (categorias, unidades)
+│   ├── styles/            # CSS externo com tokens do design system
 │   ├── test/              # Configuracao dos testes
-│   ├── App.jsx            # Componente raiz com rotas
-│   ├── main.jsx           # Ponto de entrada (BrowserRouter)
-│   └── ...                # pages/, components/, contexts/, services/, storage/ (a criar)
+│   ├── App.jsx            # Componente raiz com as rotas
+│   └── main.jsx           # Ponto de entrada (BrowserRouter + Providers)
+├── db.json                # Seed do catalogo (lido pelo json-server)
 ├── docker-compose.yml     # Ambiente de desenvolvimento containerizado
 ├── vite.config.js         # Configuracao do Vite + Vitest
 └── package.json
 ```
+
+Para a visao detalhada de arquitetura, fluxo de dados e modelo de dados, ver
+[`docs/SDD.md`](docs/SDD.md).
+
+## Qualidade e acessibilidade (Lighthouse)
+
+O [Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) (embutido
+no Chrome DevTools) mede a qualidade da pagina em quatro eixos.
+
+Resultado (modo **mobile**, sobre o **build de producao** — `npm run build` +
+`npm run preview` em http://localhost:4173):
+
+| Categoria      | Pontuacao |
+| -------------- | :-------: |
+| Performance    | 70        |
+| Accessibility  | 92        |
+| Best Practices | 100       |
+| SEO            | 91        |
+
+> Importante medir sobre o **build** (`preview`), nao sobre o `npm run dev`: no
+> modo de desenvolvimento o codigo nao e otimizado e a Performance sai
+> artificialmente baixa. Para reproduzir: `F12` → aba **Lighthouse** →
+> **Analyze page load** com a app aberta no preview.
 
 ## Workflow de Git
 
@@ -117,6 +169,7 @@ npm run dev
 ## Documentacao do projeto
 
 - [`docs/PRD.md`](docs/PRD.md) — escopo, regras de negocio, criterios de sucesso.
+- [`docs/SDD.md`](docs/SDD.md) — arquitetura, estrutura de pastas, fluxo e modelo de dados.
 - [`docs/design-system-reference.md`](docs/design-system-reference.md) — tokens e regras visuais.
 - [`docs/CompraSemMedo_DesignSystem_Aprovacao.png`](docs/CompraSemMedo_DesignSystem_Aprovacao.png) — referencia visual aprovada.
 
