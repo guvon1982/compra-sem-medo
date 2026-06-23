@@ -466,7 +466,7 @@ Componentes oficiais do app: **Button, Input, Card, ProductItem, ShoppingListIte
 - `docs/Especificacao_do_Projeto_Final.md` — enunciado oficial do professor (requisitos funcionais, criterios de avaliacao).
 - `docs/design-system-reference.md` — tokens e regras visuais aprovadas.
 - `docs/CompraSemMedo_DesignSystem_Aprovacao.png` — referencia visual aprovada.
-- `RESUMO_PARA_CLAUDE_CODE.md` — historico de contexto inicial (anterior ao PRD); util para entender o porque das decisoes.
+- `RESUMO_PARA_CLAUDE_CODE.md` — historico de contexto inicial (anterior ao PRD); **nao versionado** (esta no `.gitignore`), fica apenas local na maquina do autor. Conteudo ja absorvido por este `CLAUDE.md` e pelo `docs/PRD.md`.
 - `docs/SDD.md` — documento de arquitetura (criado no PR #37): camadas, diagramas mermaid (arquitetura + fluxo de dados), estrutura de pastas, roteamento, modelo de dados, contrato da API REST e decisoes tecnicas.
 - **Kanban (GitHub Projects):** https://github.com/users/guvon1982/projects/2 — board publico que reflete o fluxo de desenvolvimento. Ver "Stack travada" para o workflow obrigatorio.
 
