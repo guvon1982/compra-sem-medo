@@ -2,6 +2,14 @@
 
 > Sua compra sob controle, sem susto no caixa.
 
+## 📊 Apresentacao do projeto
+
+[![Apresentacao Compra Sem Medo — clique para abrir o PDF](docs/Apresentacao/capa.png)](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf)
+
+> **Clique na capa acima** para abrir a [apresentacao completa](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf) (PDF, 14 slides) — problema, solucao, telas, arquitetura e roadmap.
+
+---
+
 Aplicacao web mobile-first em React para auxiliar pessoas a controlar gastos durante compras de supermercado. Projeto final da disciplina de Front-End (IESB, 5o semestre).
 
 ## Funcionalidades (MVP)
