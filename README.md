@@ -47,107 +47,208 @@ Detalhes completos em [`docs/PRD.md`](docs/PRD.md).
 - **Docker** + **Docker Compose** para o ambiente de desenvolvimento
 - CSS externo com tokens do design system aprovado
 
-## Rodar em outra máquina (do zero)
+## Como rodar o projeto (Windows, Mac e Linux)
 
-Cenário: você chegou numa máquina nova (ex.: o PC da faculdade) e quer rodar o
-projeto. Pré-requisitos: **Git** + (**Docker Desktop** OU **Node 22+**).
+Esta seção é um passo a passo do zero, pensada para quem clona o projeto em uma
+máquina nova (ex.: PC da faculdade). Os **comandos do projeto** (`git`, `npm`,
+`docker`) são **idênticos** nos três sistemas — o que muda é apenas onde você
+abre o terminal e como instala as ferramentas.
 
-> ⚠️ **Não copie a pasta por pen drive.** A `node_modules` tem binários
-> compilados para a máquina de origem e não funcionam em outra. Sempre **clone
-> e instale do zero**.
+> ⚠️ **Não copie a pasta por pen drive.** A pasta `node_modules` contém
+> binários compilados para a máquina de origem e **não funcionam em outra**.
+> Sempre **clone do GitHub e instale do zero**.
 
-### 1. Clonar o repositório
+### Pré-requisitos
+
+Você precisa de **Git** e **Node.js 22+**. Docker é **opcional** (vale a pena
+só se você quer um ambiente isolado).
+
+| Ferramenta | Windows | Mac | Linux |
+| --- | --- | --- | --- |
+| **Git** | [git-scm.com/download/win](https://git-scm.com/download/win) | já vem; se não, `xcode-select --install` | `sudo apt install git` (Debian/Ubuntu) |
+| **Node.js 22+** | [nodejs.org](https://nodejs.org) (LTS) | [nodejs.org](https://nodejs.org) ou `brew install node@22` | [nodejs.org](https://nodejs.org) ou via [nvm](https://github.com/nvm-sh/nvm) |
+| **Docker** (opcional) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | [Docker Engine](https://docs.docker.com/engine/install/) |
+
+Para confirmar que estão instalados, abra um terminal e rode:
+
+```bash
+git --version
+node --version    # precisa ser >= v22.0.0
+npm --version
+```
+
+### Onde abrir o terminal
+
+| | Programa | Shell padrão |
+| --- | --- | --- |
+| **Windows** | PowerShell, Git Bash ou Prompt de Comando | PowerShell |
+| **Mac** | Terminal (já vem) ou iTerm | zsh |
+| **Linux** | Terminal (já vem) | bash |
+
+Nos três casos, navegue até a pasta onde quer guardar o projeto antes de
+começar (`cd caminho/da/pasta`).
+
+---
+
+### Caminho A — Sem Docker (recomendado para começar) 🟢
+
+É o mais simples e funciona igual nos três SOs. Só precisa do Git e do Node.
+
+#### 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/guvon1982/compra-sem-medo.git
 cd compra-sem-medo
 ```
 
-### 2. Instalar as dependências
+#### 2. Instalar as dependências
 
 ```bash
 npm install
 ```
 
-### 3. Subir a API **e** o app (os dois!)
+> Demora ~30s a 1min na primeira vez. Pode aparecer um aviso de
+> vulnerabilidade — é da dependência de desenvolvimento (`json-server`),
+> não afeta a aplicação. Pode ignorar.
 
-> 🔑 **O catálogo precisa da API (`json-server`).** Se você rodar só o app, o
-> catálogo aparece vazio com "Sem conexão com a API". Tem que ter a API no ar
-> também.
+#### 3. Subir a API **e** o app — em dois terminais
 
-**Com Docker (recomendado):**
+> 🔑 **O catálogo precisa da API (`json-server`).** Se você rodar só o app,
+> o catálogo aparece vazio com a mensagem "Sem conexão com a API". Os dois
+> têm que estar no ar **ao mesmo tempo**.
 
-```bash
-docker compose up -d                    # sobe a API (json-server, porta 3000) + o container do app
-docker compose exec -d app npm run dev  # inicia o Vite (porta 5173)
-```
-
-**Sem Docker:** abra **dois terminais** na pasta do projeto:
+**Terminal 1** — a API (deixe aberto, com a API rodando):
 
 ```bash
-npm run api    # terminal 1 — API (json-server) na porta 3000
-npm run dev    # terminal 2 — app (Vite) na porta 5173
+npm run api
 ```
 
-### 4. Abrir no navegador
+Deve aparecer algo como: `JSON Server started on PORT :3000`.
 
-Acesse **http://localhost:5173**. O catálogo aparece com os 10 produtos do seed
-(`db.json`, versionado no git).
+**Terminal 2** — o app (abra um novo terminal na mesma pasta):
 
-> **O que vem junto e o que não vem:** os 10 produtos do catálogo vêm no clone
-> (estão no `db.json`). Já **compra, meta e histórico começam vazios** numa
-> máquina nova — eles ficam no `localStorage` do navegador daquela máquina, não
-> no código. (Ótimo para apresentar: comece limpo e demonstre cadastrando/
-> comprando ao vivo.)
+```bash
+npm run dev
+```
 
-## Como rodar com Docker (recomendado)
+Deve aparecer: `➜ Local: http://localhost:5173/`.
 
-Pré-requisitos:
+#### 4. Abrir no navegador
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e rodando.
+Acesse **http://localhost:5173**. O catálogo aparece com os 10 produtos do
+seed (`db.json`, versionado no Git).
 
-### 1. Subir o container
+#### 5. Como parar
+
+Em cada terminal, aperte `Ctrl+C` (no Mac, também é `Ctrl+C` **dentro** do
+terminal — não é `Cmd+C`). Pronto, ambos param.
+
+---
+
+### Caminho B — Com Docker (alternativa, ambiente isolado) 🐳
+
+Vantagem: você não precisa do Node instalado no host. Tudo roda em containers.
+Desvantagem: mais passos e a primeira execução demora vários minutos (baixa as
+imagens).
+
+> ⚠️ **Não misture com o Caminho A.** Se você rodou `npm install` no host
+> antes, a pasta `node_modules` ficou com binários do seu SO (Mac/Windows) que
+> **não funcionam dentro do Linux do container**. Antes de usar Docker, apague
+> a pasta `node_modules` se ela existir (ou clone o projeto em outra pasta).
+
+#### 1. Clonar o repositório
+
+```bash
+git clone https://github.com/guvon1982/compra-sem-medo.git
+cd compra-sem-medo
+```
+
+#### 2. Subir os containers
 
 ```bash
 docker compose up -d
 ```
 
-`-d` (detached) deixa o container rodando em segundo plano e devolve o terminal.
+Sobe dois serviços: `api` (json-server, porta 3000) e `app` (Node + Vite,
+porta 5173). O `-d` (detached) deixa rodando em segundo plano. Na primeira
+vez baixa as imagens (~10min de download, dependendo da internet).
 
-### 2. Instalar dependências dentro do container (primeira vez)
+#### 3. Instalar as dependências **dentro do container**
 
 ```bash
 docker compose exec app npm install
 ```
 
-### 3. Iniciar o servidor de desenvolvimento
+Isso instala os pacotes na pasta `node_modules` com os binários certos
+para o Linux do container. Sem este passo, o Vite não inicia.
+
+#### 4. Iniciar o servidor de desenvolvimento
 
 ```bash
 docker compose exec app npm run dev
 ```
 
-Abra **http://localhost:5173** no navegador.
+> 💡 Note que **não** estamos usando `-d` aqui de propósito — assim você vê
+> os logs do Vite e percebe na hora se algo der errado. O terminal fica
+> "preso" com o Vite rodando — é o esperado.
 
-### 4. Rodar testes
+Deve aparecer: `➜ Local: http://localhost:5173/`.
 
-```bash
-docker compose exec app npm run test:run
-```
+#### 5. Abrir no navegador
 
-### 5. Parar o ambiente
+Acesse **http://localhost:5173**.
 
-```bash
-docker compose down
-```
+#### 6. Como parar
 
-## Como rodar sem Docker (alternativa)
+- Para parar o Vite: aperte `Ctrl+C` no terminal onde ele está rodando.
+- Para parar **tudo** (containers, rede): em outro terminal, rode `docker compose down`.
 
-Pré-requisitos: Node 22+ instalado.
+---
 
-```bash
-npm install
-npm run dev
-```
+### Como sei que está tudo certo? ✅
+
+Abra **http://localhost:5173** (ou **http://localhost:5174** se a 5173 estava
+ocupada — o Vite avisa qual porta usou) e confira:
+
+1. A tela inicial carrega com o lema "Sua compra sob controle, sem susto no caixa."
+2. Clicando em **"Iniciar compra"** ou no rodapé em **"Compra"**, abre a tela
+   de Listagem com 3 abas (Minha compra, Catálogo, Histórico).
+3. Na aba **Catálogo**, aparecem **10 produtos** (Arroz Tio João, Feijão Camil,
+   Café Pilão...).
+
+Se o catálogo aparece com os 10 produtos, **está 100% funcionando**.
+
+### Dicas finais
+
+- **O que vem no clone:** os 10 produtos do catálogo (no `db.json`).
+- **O que começa vazio:** compra atual, meta e histórico. Eles ficam no
+  `localStorage` do navegador daquela máquina, então cada PC começa do zero.
+  (Ótimo para apresentar: comece limpo e demonstre cadastrando e comprando ao vivo.)
+
+### Solução de problemas comuns
+
+| Sintoma | Causa provável | O que fazer |
+| --- | --- | --- |
+| `Port 5173 is in use, trying another one...` | Já tem alguma coisa usando a porta (Docker antigo? outro projeto?). | O Vite cai sozinho na 5174 — não é grave. Use **http://localhost:5174**. Para "libertar" a 5173: `docker compose down`. |
+| Catálogo aparece com **"Sem conexão com a API"** | Faltou subir a API (`json-server`). | Caminho A: rode `npm run api` em outro terminal. Caminho B: confira `docker compose ps` — `compra-sem-medo-api` precisa estar `Up`. |
+| `docker compose exec app npm run dev` não mostra nada e nada abre | `node_modules` no host bagunçou o container. | Apague a pasta `node_modules`, rode `docker compose down`, depois siga o Caminho B do zero a partir do passo 2. |
+| `Cannot find module './rolldown-binding...'` ao rodar `npm test` ou `npm run build` | `node_modules` foi instalado num SO diferente de onde está rodando. | Apague `node_modules` e rode `npm install` no SO onde vai rodar (ou dentro do container). |
+
+### Scripts disponíveis (resumo)
+
+Você não precisa decorar — o que conta para apresentar é `npm run api` + `npm run dev`. Esta tabela serve só de referência:
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | Servidor de desenvolvimento do app (HMR ativo, porta 5173) |
+| `npm run api` | API REST com json-server (porta 3000) |
+| `npm run build` | Gera o build de produção em `dist/` |
+| `npm run preview` | Serve o build estaticamente para validação (porta 4173) |
+| `npm run lint` | Verifica o código com ESLint |
+| `npm test` | Roda testes em modo watch |
+| `npm run test:run` | Roda testes uma vez e sai (modo CI) |
+| `npm run test:ui` | Abre a interface gráfica do Vitest |
+| `npm run test:coverage` | Roda testes com relatório de cobertura |
 
 ## Variáveis de ambiente
 
@@ -160,19 +261,6 @@ O front lê variáveis com prefixo `VITE_` (padrão do Vite). A única usada hoj
 Em desenvolvimento não é preciso configurar nada — o código usa o `json-server`
 local por padrão. Para apontar para outra API (ex.: em produção), copie
 [`.env.example`](.env.example) para `.env` e ajuste o valor.
-
-## Scripts disponíveis
-
-| Comando                 | O que faz                                  |
-| ----------------------- | ------------------------------------------ |
-| `npm run dev`           | Servidor de desenvolvimento (HMR ativo)    |
-| `npm run build`         | Gera o build de produção em `dist/`        |
-| `npm run preview`       | Serve o build estaticamente para validação |
-| `npm run lint`          | Verifica o código com ESLint               |
-| `npm test`              | Roda testes em modo watch                  |
-| `npm run test:run`      | Roda testes uma vez e sai (modo CI)        |
-| `npm run test:ui`       | Abre a interface gráfica do Vitest         |
-| `npm run test:coverage` | Roda testes com relatório de cobertura     |
 
 ## Estrutura do projeto
 
