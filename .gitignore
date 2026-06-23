@@ -52,3 +52,8 @@ desktop.ini
 docs/Apresentacao/Imgs/
 docs/Apresentacao/*.indd
 docs/Apresentacao/*.idml
+
+# Historico de contexto inicial — anterior ao PRD, conteudo ja absorvido
+# por docs/PRD.md e CLAUDE.md. Mantido apenas localmente como referencia
+# pessoal do autor (nao agrega ao repositorio).
+RESUMO_PARA_CLAUDE_CODE.md
