@@ -45,3 +45,10 @@ coverage/
 # Arquivos de sistema operacional
 Thumbs.db
 desktop.ini
+
+# Fontes da apresentacao (InDesign + imagens-fonte) — pesadas demais
+# para versionar. Mantemos no repo apenas os artefatos finais (capa.png
+# e o PDF). Fontes ficam locais; faca backup em outro lugar (Drive/etc).
+docs/Apresentacao/Imgs/
+docs/Apresentacao/*.indd
+docs/Apresentacao/*.idml
