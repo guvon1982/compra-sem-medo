@@ -10,7 +10,7 @@
 
 ---
 
-Aplicacao web mobile-first em React para auxiliar pessoas a controlar gastos durante compras de supermercado. Projeto final da disciplina de Front-End (IESB, 5o semestre).
+Aplicacao web mobile-first em React para auxiliar pessoas a controlar gastos durante compras de supermercado. Projeto Final da Disciplina de Front-End - IESB, 5º Semestre | Prof. José Reginaldo.
 
 ## Funcionalidades (MVP)
 
