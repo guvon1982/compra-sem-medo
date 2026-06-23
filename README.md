@@ -2,25 +2,25 @@
 
 > Sua compra sob controle, sem susto no caixa.
 
-## 📊 Apresentacao do projeto
+## 📊 Apresentação do projeto
 
-[![Apresentacao Compra Sem Medo — clique para abrir o PDF](docs/Apresentacao/capa.png)](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf)
+[![Apresentação Compra Sem Medo — clique para abrir o PDF](docs/Apresentacao/capa.png)](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf)
 
-> **Clique na capa acima** para abrir a [apresentacao completa](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf) (PDF, 14 slides) — problema, solucao, telas, arquitetura e roadmap.
+> **Clique na capa acima** para abrir a [apresentação completa](docs/Apresentacao/Apresentacao_CompraSemMedo.pdf) (PDF, 14 slides) — problema, solução, telas, arquitetura e roadmap.
 
 ---
 
-Aplicacao web mobile-first em React para auxiliar pessoas a controlar gastos durante compras de supermercado. Projeto Final da Disciplina de Front-End - IESB, 5º Semestre | Prof. José Reginaldo.
+Aplicação web mobile-first em React para auxiliar pessoas a controlar gastos durante compras de supermercado. Projeto Final da Disciplina de Front-End - IESB, 5º Semestre | Prof. José Reginaldo.
 
 ## Funcionalidades (MVP)
 
-- Catalogo de produtos consumido de API REST (json-server).
-- Cadastro de novos produtos (formulario controlado com validacao).
-- Montar uma lista de compras informando quantidade e preco unitario.
-- Calculo automatico de subtotal por item e total da compra.
+- Catálogo de produtos consumido de API REST (json-server).
+- Cadastro de novos produtos (formulário controlado com validação).
+- Montar uma lista de compras informando quantidade e preço unitário.
+- Cálculo automático de subtotal por item e total da compra.
 - Meta de gasto opcional com indicador "dentro" (verde) ou "fora" (laranja).
-- Finalizar compra e historico de compras anteriores.
-- Persistencia local via localStorage (dados nao somem ao fechar o navegador).
+- Finalizar compra e histórico de compras anteriores.
+- Persistência local via localStorage (dados não somem ao fechar o navegador).
 - Interface responsiva mobile-first.
 
 Detalhes completos em [`docs/PRD.md`](docs/PRD.md).
@@ -39,31 +39,31 @@ Detalhes completos em [`docs/PRD.md`](docs/PRD.md).
 
 - **React 19** + **Vite 8**
 - **react-router v7** para rotas (`/`, `/cadastro`, `/listagem`)
-- **react-hook-form** para formularios e validacao
+- **react-hook-form** para formulários e validação
 - **Context API + useReducer** para estado compartilhado
 - **Fetch API** + **json-server** para a camada REST
-- **localStorage** para persistencia local
+- **localStorage** para persistência local
 - **Vitest** + **Testing Library** para testes
 - **Docker** + **Docker Compose** para o ambiente de desenvolvimento
 - CSS externo com tokens do design system aprovado
 
-## Rodar em outra maquina (do zero)
+## Rodar em outra máquina (do zero)
 
-Cenario: voce chegou numa maquina nova (ex.: o PC da faculdade) e quer rodar o
-projeto. Pre-requisitos: **Git** + (**Docker Desktop** OU **Node 22+**).
+Cenário: você chegou numa máquina nova (ex.: o PC da faculdade) e quer rodar o
+projeto. Pré-requisitos: **Git** + (**Docker Desktop** OU **Node 22+**).
 
-> ⚠️ **Nao copie a pasta por pen drive.** A `node_modules` tem binarios
-> compilados para a maquina de origem e nao funcionam em outra. Sempre **clone
+> ⚠️ **Não copie a pasta por pen drive.** A `node_modules` tem binários
+> compilados para a máquina de origem e não funcionam em outra. Sempre **clone
 > e instale do zero**.
 
-### 1. Clonar o repositorio
+### 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/guvon1982/compra-sem-medo.git
 cd compra-sem-medo
 ```
 
-### 2. Instalar as dependencias
+### 2. Instalar as dependências
 
 ```bash
 npm install
@@ -71,9 +71,9 @@ npm install
 
 ### 3. Subir a API **e** o app (os dois!)
 
-> 🔑 **O catalogo precisa da API (`json-server`).** Se voce rodar so o app, o
-> catalogo aparece vazio com "Sem conexao com a API". Tem que ter a API no ar
-> tambem.
+> 🔑 **O catálogo precisa da API (`json-server`).** Se você rodar só o app, o
+> catálogo aparece vazio com "Sem conexão com a API". Tem que ter a API no ar
+> também.
 
 **Com Docker (recomendado):**
 
@@ -91,18 +91,18 @@ npm run dev    # terminal 2 — app (Vite) na porta 5173
 
 ### 4. Abrir no navegador
 
-Acesse **http://localhost:5173**. O catalogo aparece com os 10 produtos do seed
+Acesse **http://localhost:5173**. O catálogo aparece com os 10 produtos do seed
 (`db.json`, versionado no git).
 
-> **O que vem junto e o que nao vem:** os 10 produtos do catalogo vem no clone
-> (estao no `db.json`). Ja **compra, meta e historico comecam vazios** numa
-> maquina nova — eles ficam no `localStorage` do navegador daquela maquina, nao
-> no codigo. (Otimo para apresentar: comece limpo e demonstre cadastrando/
+> **O que vem junto e o que não vem:** os 10 produtos do catálogo vêm no clone
+> (estão no `db.json`). Já **compra, meta e histórico começam vazios** numa
+> máquina nova — eles ficam no `localStorage` do navegador daquela máquina, não
+> no código. (Ótimo para apresentar: comece limpo e demonstre cadastrando/
 > comprando ao vivo.)
 
 ## Como rodar com Docker (recomendado)
 
-Pre-requisitos:
+Pré-requisitos:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e rodando.
 
@@ -114,7 +114,7 @@ docker compose up -d
 
 `-d` (detached) deixa o container rodando em segundo plano e devolve o terminal.
 
-### 2. Instalar dependencias dentro do container (primeira vez)
+### 2. Instalar dependências dentro do container (primeira vez)
 
 ```bash
 docker compose exec app npm install
@@ -142,98 +142,98 @@ docker compose down
 
 ## Como rodar sem Docker (alternativa)
 
-Pre-requisitos: Node 22+ instalado.
+Pré-requisitos: Node 22+ instalado.
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Variaveis de ambiente
+## Variáveis de ambiente
 
-O front le variaveis com prefixo `VITE_` (padrao do Vite). A unica usada hoje:
+O front lê variáveis com prefixo `VITE_` (padrão do Vite). A única usada hoje:
 
-| Variavel       | Padrao                  | Para que serve                           |
+| Variável       | Padrão                  | Para que serve                           |
 | -------------- | ----------------------- | ---------------------------------------- |
 | `VITE_API_URL` | `http://localhost:3000` | URL base da API REST (sem `/` no final). |
 
-Em desenvolvimento nao e preciso configurar nada — o codigo usa o `json-server`
-local por padrao. Para apontar para outra API (ex.: em producao), copie
+Em desenvolvimento não é preciso configurar nada — o código usa o `json-server`
+local por padrão. Para apontar para outra API (ex.: em produção), copie
 [`.env.example`](.env.example) para `.env` e ajuste o valor.
 
-## Scripts disponiveis
+## Scripts disponíveis
 
 | Comando                 | O que faz                                  |
 | ----------------------- | ------------------------------------------ |
 | `npm run dev`           | Servidor de desenvolvimento (HMR ativo)    |
-| `npm run build`         | Gera o build de producao em `dist/`        |
-| `npm run preview`       | Serve o build estaticamente para validacao |
-| `npm run lint`          | Verifica o codigo com ESLint               |
+| `npm run build`         | Gera o build de produção em `dist/`        |
+| `npm run preview`       | Serve o build estaticamente para validação |
+| `npm run lint`          | Verifica o código com ESLint               |
 | `npm test`              | Roda testes em modo watch                  |
 | `npm run test:run`      | Roda testes uma vez e sai (modo CI)        |
-| `npm run test:ui`       | Abre a interface grafica do Vitest         |
-| `npm run test:coverage` | Roda testes com relatorio de cobertura     |
+| `npm run test:ui`       | Abre a interface gráfica do Vitest         |
+| `npm run test:coverage` | Roda testes com relatório de cobertura     |
 
 ## Estrutura do projeto
 
 ```
 .
-├── docs/                  # PRD, SDD, design system, referencias visuais
-├── public/                # Assets estaticos servidos sem processamento
+├── docs/                  # PRD, SDD, design system, referências visuais
+├── public/                # Assets estáticos servidos sem processamento
 ├── src/
-│   ├── components/        # Componentes reutilizaveis do Design System
+│   ├── components/        # Componentes reutilizáveis do Design System
 │   ├── pages/             # Uma pasta por rota (Home, Cadastro, Listagem, NotFound)
 │   ├── contexts/          # Estado global (Context + reducers puros)
-│   ├── services/          # Camada de acesso a API REST (produtoService)
+│   ├── services/          # Camada de acesso à API REST (produtoService)
 │   ├── storage/           # Acesso isolado ao localStorage
-│   ├── utils/             # Funcoes puras (currency, catalogo)
+│   ├── utils/             # Funções puras (currency, catalogo)
 │   ├── data/              # Constantes e mock (categorias, unidades)
 │   ├── styles/            # CSS externo com tokens do design system
-│   ├── test/              # Configuracao dos testes
+│   ├── test/              # Configuração dos testes
 │   ├── App.jsx            # Componente raiz com as rotas
 │   └── main.jsx           # Ponto de entrada (BrowserRouter + Providers)
-├── db.json                # Seed do catalogo (lido pelo json-server)
+├── db.json                # Seed do catálogo (lido pelo json-server)
 ├── docker-compose.yml     # Ambiente de desenvolvimento containerizado
-├── vite.config.js         # Configuracao do Vite + Vitest
+├── vite.config.js         # Configuração do Vite + Vitest
 └── package.json
 ```
 
-Para a visao detalhada de arquitetura, fluxo de dados e modelo de dados, ver
+Para a visão detalhada de arquitetura, fluxo de dados e modelo de dados, ver
 [`docs/SDD.md`](docs/SDD.md).
 
 ## Qualidade e acessibilidade (Lighthouse)
 
 O [Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) (embutido
-no Chrome DevTools) mede a qualidade da pagina em quatro eixos.
+no Chrome DevTools) mede a qualidade da página em quatro eixos.
 
-Resultado (modo **mobile**, sobre o **build de producao** — `npm run build` +
+Resultado (modo **mobile**, sobre o **build de produção** — `npm run build` +
 `npm run preview` em http://localhost:4173):
 
-| Categoria      | Pontuacao |
+| Categoria      | Pontuação |
 | -------------- | :-------: |
 | Performance    | 70        |
 | Accessibility  | 92        |
 | Best Practices | 100       |
 | SEO            | 91        |
 
-> Importante medir sobre o **build** (`preview`), nao sobre o `npm run dev`: no
-> modo de desenvolvimento o codigo nao e otimizado e a Performance sai
+> Importante medir sobre o **build** (`preview`), não sobre o `npm run dev`: no
+> modo de desenvolvimento o código não é otimizado e a Performance sai
 > artificialmente baixa. Para reproduzir: `F12` → aba **Lighthouse** →
 > **Analyze page load** com a app aberta no preview.
 
 ## Workflow de Git
 
-- `main` — versoes "prontas". Recebe merge apenas no fim do projeto.
-- `develop` — linha principal de desenvolvimento. Branch padrao do repositorio.
+- `main` — versões "prontas". Recebe merge apenas no fim do projeto.
+- `develop` — linha principal de desenvolvimento. Branch padrão do repositório.
 - `feature/<nome>` — uma branch por feature, sempre nascendo de `develop` e voltando para `develop` via Pull Request.
 
-## Documentacao do projeto
+## Documentação do projeto
 
-- [`docs/PRD.md`](docs/PRD.md) — escopo, regras de negocio, criterios de sucesso.
+- [`docs/PRD.md`](docs/PRD.md) — escopo, regras de negócio, critérios de sucesso.
 - [`docs/SDD.md`](docs/SDD.md) — arquitetura, estrutura de pastas, fluxo e modelo de dados.
 - [`docs/design-system-reference.md`](docs/design-system-reference.md) — tokens e regras visuais.
-- [`docs/CompraSemMedo_DesignSystem_Aprovacao.png`](docs/CompraSemMedo_DesignSystem_Aprovacao.png) — referencia visual aprovada.
+- [`docs/CompraSemMedo_DesignSystem_Aprovacao.png`](docs/CompraSemMedo_DesignSystem_Aprovacao.png) — referência visual aprovada.
 
-## Licenca
+## Licença
 
-Projeto academico. Uso pessoal e educacional.
+Projeto acadêmico. Uso pessoal e educacional.
